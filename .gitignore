@@ -1,0 +1,17 @@
+# 生成的图片
+assets/
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 输出目录（旧版）
+ark_outputs/
+.env
