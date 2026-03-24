@@ -177,9 +177,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    # 优先从指定的 .env 文件读取 API key
-    env_file = "/Users/zhouyuexing/clawd/project/me-agent/04-个人技能/.env"
-    env_vars = load_env_file(env_file)
+    # 优先从脚本所在目录的 .env 文件读取 API key
+    script_dir = Path(__file__).parent.resolve()
+    env_file = script_dir / ".env"
+    env_vars = load_env_file(str(env_file))
     api_key = env_vars.get("ARK_API_KEY") or os.environ.get("ARK_API_KEY")
 
     if not api_key:
