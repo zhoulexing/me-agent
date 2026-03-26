@@ -17,3 +17,4 @@ ark_outputs/
 .env
 temp/
 venv
+.claude
