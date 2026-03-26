@@ -16,3 +16,4 @@ __pycache__/
 ark_outputs/
 .env
 temp/
+venv
