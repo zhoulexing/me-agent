@@ -1,9 +1,11 @@
 #!/bin/bash
 
-# link-skill.sh - 将本项目的 skill 软链接到不同 agent
-# 用法: ./link-skill.sh <skill-name> <agent1,agent2,...>
+# link-skill.sh - 将本项目的 skill 软链接到不同 agent，或移除对应软链接
+# 用法: ./link-skill.sh [link|unlink] <skill-name> <agent1,agent2,...>
+# 兼容旧用法: ./link-skill.sh <skill-name> <agent1,agent2,...>
 # 示例: ./link-skill.sh zlx-note claude,codex
-#       ./link-skill.sh zlx-note all
+#       ./link-skill.sh link zlx-note all
+#       ./link-skill.sh unlink zlx-note codex
 
 # 获取脚本所在目录的父目录（项目根目录）
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -17,9 +19,12 @@ NC='\033[0m' # No Color
 
 # 显示帮助信息
 show_help() {
-    echo "用法: $0 <skill-name> <agent-list>"
+    echo "用法:"
+    echo "  $0 <skill-name> <agent-list>"
+    echo "  $0 <action> <skill-name> <agent-list>"
     echo ""
     echo "参数:"
+    echo "  action        - link(创建软链接) 或 unlink(移除软链接)，默认 link"
     echo "  skill-name    - skills 目录下的 skill 文件夹名称"
     echo "  agent-list    - 目标 agent，多个用逗号分隔，或使用 'all'"
     echo ""
@@ -31,6 +36,8 @@ show_help() {
     echo ""
     echo "示例:"
     echo "  $0 zlx-note claude                    # 链接到 claude"
+    echo "  $0 link zlx-note claude,codex         # 链接到 claude 和 codex"
+    echo "  $0 unlink zlx-note codex              # 从 codex 移除软链接"
     echo "  $0 zlx-note claude,codex              # 链接到 claude 和 codex"
     echo "  $0 zlx-note all                       # 链接到所有 agent"
     echo ""
@@ -141,6 +148,53 @@ create_link() {
     fi
 }
 
+# 移除软链接
+remove_link() {
+    local skill_name="$1"
+    local agent="$2"
+    local target_dir=$(get_agent_dir "$agent")
+    local source_path="$SKILLS_DIR/$skill_name"
+    local target_path="$target_dir/$skill_name"
+
+    if [[ -z "$target_dir" ]]; then
+        echo -e "${RED}内部错误: 无法获取 $agent 的目录${NC}"
+        return 1
+    fi
+
+    if [[ ! -d "$target_dir" ]]; then
+        echo -e "${YELLOW}警告: $agent 的 skills 目录不存在: $target_dir${NC}"
+        echo -e "  跳过 $agent"
+        return 1
+    fi
+
+    if [[ ! -e "$target_path" && ! -L "$target_path" ]]; then
+        echo -e "${YELLOW}-${NC} $agent: 未找到对应条目，无需移除"
+        return 0
+    fi
+
+    if [[ ! -L "$target_path" ]]; then
+        echo -e "${YELLOW}!${NC} $agent: 目标存在，但不是软链接，跳过删除"
+        return 1
+    fi
+
+    local current_link="$(readlink "$target_path")"
+    if [[ "$current_link" != "$source_path" ]]; then
+        echo -e "${YELLOW}!${NC} $agent: 软链接存在，但不指向当前 skill，跳过删除"
+        echo -e "  $target_path -> $current_link"
+        return 1
+    fi
+
+    rm "$target_path"
+
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}✓${NC} $agent: 已移除软链接"
+        return 0
+    else
+        echo -e "${RED}✗${NC} $agent: 移除软链接失败"
+        return 1
+    fi
+}
+
 # 主逻辑
 main() {
     # 检查参数
@@ -149,13 +203,31 @@ main() {
         exit 1
     fi
 
-    local skill_name="$1"
-    local agents_input="$2"
+    local action="link"
+    local skill_name=""
+    local agents_input=""
+
+    if [[ "$1" == "link" || "$1" == "unlink" ]]; then
+        if [[ $# -lt 3 ]]; then
+            show_help
+            exit 1
+        fi
+        action="$1"
+        skill_name="$2"
+        agents_input="$3"
+    else
+        skill_name="$1"
+        agents_input="$2"
+    fi
 
     # 检查 skill 是否存在
     check_skill_exists "$skill_name"
 
-    echo "正在为 skill '$skill_name' 创建软链接..."
+    if [[ "$action" == "unlink" ]]; then
+        echo "正在移除 skill '$skill_name' 的软链接..."
+    else
+        echo "正在为 skill '$skill_name' 创建软链接..."
+    fi
     echo "源路径: $SKILLS_DIR/$skill_name"
     echo ""
 
@@ -177,19 +249,27 @@ main() {
         fi
     done
 
-    # 创建软链接
+    # 执行动作
     local success_count=0
     local total_count=${#agents[@]}
 
     for agent in "${agents[@]}"; do
         agent=$(echo "$agent" | xargs) # 去除空格
-        if create_link "$skill_name" "$agent"; then
+        if [[ "$action" == "unlink" ]]; then
+            if remove_link "$skill_name" "$agent"; then
+                ((success_count++))
+            fi
+        elif create_link "$skill_name" "$agent"; then
             ((success_count++))
         fi
     done
 
     echo ""
-    echo "完成: $success_count/$total_count 个 agent 链接成功"
+    if [[ "$action" == "unlink" ]]; then
+        echo "完成: $success_count/$total_count 个 agent 移除成功"
+    else
+        echo "完成: $success_count/$total_count 个 agent 链接成功"
+    fi
 }
 
 # 运行主函数

@@ -1,5 +1,5 @@
 ---
-name: self-media
+name: zlx-self-media
 description: 用于生成跟自媒体相关的内容。当用户想生成文字稿或者是根据文字稿来生成标题时使用。
 ---
 
