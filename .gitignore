@@ -11,6 +11,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.DS_Store
 
 # 输出目录（旧版）
 ark_outputs/
