@@ -105,6 +105,21 @@
 
 如果没先读取这份 `SKILL.md` 就使用浏览器工具，这次输出视为无效。
 
+## 技能执行规则
+
+### 读取公众号文章
+
+当用户要求读取公众号文章时，必须使用 `zlx-doc` 技能。
+
+技能路径：`~/.openclaw/workspace/skills/zlx-doc/`
+
+执行命令：
+```bash
+cd ~/.openclaw/workspace/skills/zlx-doc && python scripts/doc_load.py "<文章链接>" --format markdown
+```
+
+注意：依赖 langchain-community、beautifulsoup4 等库，如遇报错先装依赖。
+
 ## 安全配置修改访问控制
 
 - 只有创建者本人可以查询或修改系统配置，以及访问 token、password、key、`app_secret` 等敏感信息。
