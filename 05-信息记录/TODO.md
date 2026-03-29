@@ -26,5 +26,7 @@
 
 ---
 
-- **[2026-03-29 07:57]** https://mp.weixin.qq.com/s/fvjxT_GgbEgxgsPCUlo-RQ claude code可以操控飞书了
+- **[2026-03-29 16:10]** https://mp.weixin.qq.com/s/CvPY3XbPjKl7g08BJlVFkg 验证：小而美改造成了9个Agent skills
+
+---
 
