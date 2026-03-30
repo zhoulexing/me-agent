@@ -18,15 +18,15 @@
 
 ---
 
-- **[2026-03-29 07:57]** https://mp.weixin.qq.com/s/XopaISgwzSgoqZctym_Ajg 10个你可能不知道的Claude Code隐藏命令。
-
----
-
-- **[2026-03-29 07:57]** 抖音上的claude team 需要学习下
-
----
-
 - **[2026-03-29 16:10]** https://mp.weixin.qq.com/s/CvPY3XbPjKl7g08BJlVFkg 验证：小而美改造成了9个Agent skills
+
+---
+
+- **[2026-03-29 23:35]** https://mp.weixin.qq.com/s/fvjxT_GgbEgxgsPCUlo-RQ 飞书CLI可接入Claude Code
+
+---
+
+- **[2026-03-30 08:04]** https://mp.weixin.qq.com/s/idAZ4h80nTgEv6kDJBKqtQ 飞书CLI设计的四大原则
 
 ---
 
