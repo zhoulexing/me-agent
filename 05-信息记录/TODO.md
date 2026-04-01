@@ -1,25 +1,37 @@
-## Todo: 不依赖 DOM 的文字编排方案
+# TODO 待办事项
 
-- **日期**：2026-04-01
-- **标签**：文字编排、Pretext、无DOM
-- **来源**：微信文章 https://mp.weixin.qq.com/s/pGNjDigUPh0ZHnTCmnR-bw
-- **状态**：待尝试
+> 记录需要完成的任务和待办事项
 
-### 背景
+## 记录格式
 
-文章介绍了 Cheng Lou 的 Pretext，一个不依赖 DOM 的文字编排方案。
+```
+- **[时间]** 具体待办内容
+- **[时间]** 具体待办内容
+```
 
-### 核心要点
+## 示例
 
-- Pretext 是一个纯 JavaScript 文字编排库
-- 不依赖传统 DOM 布局，使用自定义的布局引擎
-- 支持高质量的文字渲染性能（120fps 等）
+```
+- **[2026-03-28 15:00]** 提交代码到 GitHub
+- **[2026-03-28 18:00]** 回复用户消息
+```
 
-### 待完成
+---
 
-- 尝试 Pretext 方案
-- 研究其实现原理
+- **[2026-03-29 16:10]** https://mp.weixin.qq.com/s/CvPY3XbPjKl7g08BJlVFkg 验证：小而美改造成了9个Agent skills
 
-### 原文链接
+---
 
-https://github.com/chenglou/pretext
+- **[2026-03-29 23:35]** https://mp.weixin.qq.com/s/fvjxT_GgbEgxgsPCUlo-RQ 飞书CLI可接入Claude Code
+
+---
+
+- **[2026-03-30 08:04]** https://mp.weixin.qq.com/s/idAZ4h80nTgEv6kDJBKqtQ 飞书CLI设计的四大原则
+
+---
+
+- **[2026-03-30 16:10]** https://mp.weixin.qq.com/s/dxIFKYaKhoCDcPaCn3x6MA 15个被低估的Claude Code功能
+
+---
+
+- **[2026-04-01 07:46]** https://mp.weixin.qq.com/s/pGNjDigUPh0ZHnTCmnR-bw 记一个todo，不依赖DOM的文字编排(Pretext)
