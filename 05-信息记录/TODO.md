@@ -35,3 +35,7 @@
 ---
 
 - **[2026-04-01 07:46]** https://mp.weixin.qq.com/s/pGNjDigUPh0ZHnTCmnR-bw 记一个todo，不依赖DOM的文字编排(Pretext)
+
+---
+
+- **[2026-04-02 00:31]** 研究 Claude Code 源码，了解 Bash 命令在处理大量文本时的处理方式
