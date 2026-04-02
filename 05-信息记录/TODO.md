@@ -35,3 +35,7 @@
 ---
 
 - **[2026-04-01 07:46]** https://mp.weixin.qq.com/s/pGNjDigUPh0ZHnTCmnR-bw 记一个todo，不依赖DOM的文字编排(Pretext)
+
+---
+
+- **[2026-04-02 12:21]** https://mp.weixin.qq.com/s/iBCNkORwkff3PL1EZD3zqw 多Agent协作：用"三省六部制"构建Agent团队（Accio Work）
