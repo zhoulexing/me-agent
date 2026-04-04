@@ -1,0 +1,17 @@
+{
+  "name": "zlx-cc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A study-oriented reimplementation scaffold inspired by Claude Code's architecture.",
+  "bin": {
+    "zlx-cc": "./bin/zlx-cc.js"
+  },
+  "scripts": {
+    "start": "node ./bin/zlx-cc.js",
+    "help": "node ./bin/zlx-cc.js --help"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
