@@ -38,3 +38,7 @@
 ---
 
 - **[2026-04-04 19:58]** https://mp.weixin.qq.com/s/H-hggbJAMBTuambCzNE4OQ Agent CLI 设计原则 10 条（名词在前、长参数优先、输出是契约、感知环境、干跑优先、退出码控制、防住幻觉、幂等设计、错误即指导、帮助即大脑）
+
+---
+
+- **[2026-04-05 10:40]** https://mp.weixin.qq.com/s/3u-6hhpDYPO-s7V1PDUE-A 疯狂的skill
