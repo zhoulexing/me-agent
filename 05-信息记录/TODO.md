@@ -42,3 +42,7 @@
 ---
 
 - **[2026-04-05 10:40]** https://mp.weixin.qq.com/s/3u-6hhpDYPO-s7V1PDUE-A 疯狂的skill
+
+---
+
+- **[2026-04-05 23:45]** 了解 Zellij 分屏终端工具（比 tmux 更好用）
