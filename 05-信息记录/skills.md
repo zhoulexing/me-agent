@@ -31,13 +31,3 @@
 - **安装**：`npx skills add jimliu/baoyu-article-illustrator -g`
 
 ---
-
-## 媒体
-
-### subtitle-generation
-
-- **作用**：使用 each::sense AI 为视频生成字幕和 captions，包括自动转写、多语言字幕、TikTok风格动画字幕、SRT/VTT导出、说话人识别、烧录字幕等
-- **安装**：`npx skills add eachlabs/skills@subtitle-generation -g`
-- **注意**：需要配置 `EACHLABS_API_KEY`
-
----
