@@ -74,7 +74,7 @@ $PROJECT_ROOT = ~/clawd/project/me-agent/
 
 **操作步骤**：
 1. 确认认知主题或分类
-2. 生成文件名：`[主题名称]-[tag1,tag2]-[YYYY-MM-DD].md`
+2. 生成文件名：`YYYY-MM-DD-[主题名称]-[tag1,tag2].md`（日期在前，按时间倒序排列）
 3. 创建文件到 `$PROJECT_ROOT/02-个人认知/`
 4. 将原始内容全部添加到文件，不做任何修改
 
@@ -94,7 +94,7 @@ $PROJECT_ROOT = ~/clawd/project/me-agent/
 
 **操作步骤**：
 1. 确认技术主题或分类
-2. 生成文件名：`[技术主题]-[tag1,tag2]-[YYYY-MM-DD].md`
+2. 生成文件名：`YYYY-MM-DD-[技术主题]-[tag1,tag2].md`（日期在前，按时间倒序排列）
 3. 创建文件到 `$PROJECT_ROOT/03-技术认知/`
 4. 将原始内容全部添加到文件，不做任何修改
 
