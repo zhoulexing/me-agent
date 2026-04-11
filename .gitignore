@@ -19,4 +19,9 @@ ark_outputs/
 temp/
 venv
 .claude
+
+.baoyu-skills/
 cover-image/
+post-to-wechat/
+infographic/
+article-illustrator/
