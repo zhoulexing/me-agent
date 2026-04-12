@@ -1,3 +1,5 @@
+node_modules/
+
 # 生成的图片
 assets/
 *.png
@@ -18,10 +20,17 @@ ark_outputs/
 .env
 temp/
 venv
+
 .claude
+.agents
+.continue
+.kiro
+.skills-lock
 
 .baoyu-skills/
 cover-image/
 post-to-wechat/
 infographic/
 article-illustrator/
+slide-deck/
+midscene_run/

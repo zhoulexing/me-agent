@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "baoyu-slide-deck": {
+      "source": "jimliu/baoyu-skills",
+      "sourceType": "github",
+      "computedHash": "aa04e0367dc255776c7c7294a6dfc75f8674838bbc04e918084bf1239a4003b7"
+    }
+  }
+}
