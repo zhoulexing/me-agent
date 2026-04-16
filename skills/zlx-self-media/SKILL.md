@@ -1,31 +1,52 @@
 ---
 name: zlx-self-media
-description: 自媒体能力技能，帮助用户梳理人设、发布视频到各平台。
+description: 自媒体选题与写作技能。通过联网搜索小红书、抖音、公众号、X、arXiv 等平台做选题，确认后再提供结构与逻辑势能选项，完成写作和标题生成。
 ---
 
 # Self Media
 
 ## Overview
-这个 skill 用于处理自媒体相关任务。
+这个 skill 用于处理自媒体相关任务，重点不是泛泛聊内容，而是帮助用户持续找到值得做的题。
 
 当前能力：
-1. **立人设**：帮助用户想清楚自己是谁、适合输出什么
-2. **视频发布**：支持小红书、抖音（browser-use）、视频号（Midscene AI）
+1. **选题研究**：基于联网搜索做多平台信号收集，围绕三类内容体系输出选题
+3. **内容写作**：在用户确认选题后，先给结构和逻辑势能选项，再按要求写作
+4. **标题优化**：基于选题或正文生成更能传播的标题
 
 ## References
 | Reference | Trigger | Notes |
 | --- | --- | --- |
-| `references/persona-positioning.md` | 用户要立人设、梳理个人IP、明确表达方向 | 苏格拉底式引导 |
-| `references/xiaohongshu-video-post.md` | 用户要发布视频到小红书 | browser-use + Chrome "用户1" |
-| `references/douyin-video-post.md` | 用户要发布视频到抖音 | browser-use + Chrome "用户1" |
-| `references/video-account-video-post.md` | 用户要发布视频到微信视频号 | Midscene AI 视觉驱动 |
+| `references/topic-planning.md` | 用户要找选题、做长期规划、做内容方向梳理、看最近有什么值得讲 | 默认优先使用；必须联网搜索 |
+| `references/writing-principles.md` | 用户要写文章、写口播稿、整理表达方式、选择结构和逻辑势能 | 先确认选题，再给写作方案 |
+| `references/title-principles.md` | 用户要起标题、优化标题、做标题候选 | 强调点击意愿，不要平铺直叙 |
 
 ## Workflows
-- 明确用户意图
-- 根据意图选择对应 reference
-- 按照对应 Reference 执行
+
+### 1. 选题
+- 先读取 `references/topic-planning.md`
+- 必须联网搜索，不允许只靠记忆直接给题
+- 默认检索平台：小红书、抖音、公众号、X、arXiv
+- 先看平台信号，再回到三类框架里组织选题
+- 输出时默认遵守 `分享型 40% / 解决问题型 20% / 系统解释型 40%`
+
+### 3. 写作
+- 先读取 `references/writing-principles.md`
+- 必须先确定选题，未确认前不要直接开写
+- 选题确认后，先基于内容给出适合的结构选项和逻辑势能选项
+- 等用户选定后，再开始正式写作
+- 写完后再读取 `references/title-principles.md` 生成标题
+
+### 4. 标题
+- 读取 `references/title-principles.md`
+- 基于已有主题或文稿生成标题，不要脱离内容胡乱起标题
 
 ## Constraints
 - 不要 AI 味太重
-- 以苏格拉底式引导为主，循循善诱
-- 核心目标不是替用户仓促下结论，而是让用户自己逐步想明白
+- 选题必须基于真实平台信号，不要凭空编趋势
+- 涉及“最近、最新、现在流行什么”时，必须给出具体平台和时间判断
+- 选题优先围绕三类内容体系，不要重新发散成很多平行方向
+- 系统解释型和分享型优先级更高，解决问题型作为补强
+- 写作必须有对象感，默认直接对你说话
+- 幽默感可选，但不能为了幽默破坏清晰度
+- 结构和逻辑势能要分开判断
+- 默认不要使用引号和破折号，除非用户明确要求
