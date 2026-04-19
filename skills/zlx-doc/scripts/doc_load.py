@@ -8,6 +8,8 @@ import json
 import sys
 from pathlib import Path
 
+from runtime_env import ensure_compatible_interpreter, missing_dependency_message
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_DIR.parent
@@ -68,17 +70,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    ensure_compatible_interpreter()
     parser = build_parser()
     args = parser.parse_args()
 
     try:
         from reader_core import DocumentReader, ReaderError, dump_large_content
     except ModuleNotFoundError as exc:
-        print(
-            f"缺少运行依赖: {exc.name}。请先执行 "
-            f"`bash {SCRIPT_DIR / 'setup.sh'}` 安装技能依赖。",
-            file=sys.stderr,
-        )
+        print(missing_dependency_message(exc.name), file=sys.stderr)
         return 1
 
     try:

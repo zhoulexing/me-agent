@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 from typing import Any, Callable, Iterable
@@ -14,13 +15,20 @@ from urllib.parse import urlparse
 
 import httpx
 
+os.environ.setdefault(
+    "USER_AGENT",
+    (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    ),
+)
+
 from langchain_community.document_loaders import (
     ArxivLoader,
     Docx2txtLoader,
     PyMuPDFLoader,
     TextLoader,
     UnstructuredExcelLoader,
-    UnstructuredMarkdownLoader,
     UnstructuredWordDocumentLoader,
     WebBaseLoader,
 )
@@ -63,10 +71,7 @@ class ReaderError(Exception):
 
 class DocumentReader:
     DEFAULT_WEB_HEADERS = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-        ),
+        "User-Agent": os.environ["USER_AGENT"],
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
     }
@@ -168,8 +173,7 @@ class DocumentReader:
         return self._join_documents(loader.load())
 
     def _load_markdown(self, path: Path) -> str:
-        loader = UnstructuredMarkdownLoader(str(path), mode="single")
-        return self._join_documents(loader.load())
+        return path.read_text(encoding="utf-8")
 
     def _load_excel(self, path: Path) -> str:
         loader = UnstructuredExcelLoader(str(path), mode="single")
@@ -188,6 +192,7 @@ class DocumentReader:
         return self._join_documents(loader.load())
 
     def _load_web(self, url: str) -> str:
+        os.environ.setdefault("USER_AGENT", self.DEFAULT_WEB_HEADERS["User-Agent"])
         loader = WebBaseLoader(web_paths=[url], header_template=self.DEFAULT_WEB_HEADERS)
         return self._join_documents(loader.load())
 
