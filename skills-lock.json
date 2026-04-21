@@ -5,6 +5,11 @@
       "source": "jimliu/baoyu-skills",
       "sourceType": "github",
       "computedHash": "aa04e0367dc255776c7c7294a6dfc75f8674838bbc04e918084bf1239a4003b7"
+    },
+    "gemini-api-dev": {
+      "source": "google-gemini/gemini-skills",
+      "sourceType": "github",
+      "computedHash": "a72a3164552bd1764bca52d33806f4578572af3c279611a5bda420b6a9ca68c4"
     }
   }
 }
