@@ -38,6 +38,47 @@
 - 抖音：重点看高传播切口、冲突感和信息差表达
 - 小红书：重点看收藏型选题、标题包装方式和评论区反复追问的问题
 
+X 和 YouTube 的重点关注清单：
+
+- 模型公司官方：
+  `@OpenAI`
+  `@AnthropicAI`
+  `@GoogleDeepMind`
+  `@xai`
+  `@MistralAI`
+- 产品和开发者生态官方：
+  `@LangChainAI`
+  `@llama_index`
+  `@huggingface`
+  `@vercel`
+  `@cursor_ai`
+- 有一线工程判断的人：
+  `@karpathy`
+  `@ylecun`
+  `@swyx`
+  `@jxnlco`
+  `@dsp_`
+  `@lateinteraction`
+  `@rasbt`
+- 做 Agent / 编码 / 工程化的人：
+  `@bentossell`
+  `@scobleizer`
+  `@jerryjliu0`
+  `@hwchase17`
+  `@sydneyrunkle`
+- 做 AI 社会观察与认知判断的人：
+  `@pakpakchicken`
+  `@nearcyan`
+  `@morethanmoore`
+
+执行时要求：
+
+- 在 X 上优先检查这些账号最近 3 天的发帖、转发、回复和高互动讨论
+- 在 YouTube 上优先检查这些人或机构对应频道最近发布的视频、访谈、直播回放和社区动态
+- 如果同一主题同时出现在官方账号和一线实践者视角里，优先提高选题权重
+- 如果只有转述没有一手表达，默认降低优先级
+- 不能把这份清单当成唯一信源，仍然需要和其他平台交叉验证
+
 补充要求：
 
 - 默认不能只看单一平台
