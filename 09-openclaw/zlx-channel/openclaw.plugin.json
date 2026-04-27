@@ -1,0 +1,55 @@
+{
+  "id": "zlx",
+  "name": "Zlx Channel",
+  "description": "Zlx webhook channel plugin for OpenClaw",
+  "channels": ["zlx"],
+  "channelEnvVars": {
+    "zlx": ["ZLX_WEBHOOK_SECRET"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "channelConfigs": {
+    "zlx": {
+      "label": "Zlx",
+      "description": "Webhook channel for external ZLX systems.",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "name": { "type": "string" },
+          "webhookPath": { "type": "string" },
+          "webhookSecret": { "type": "string" },
+          "outboundUrl": { "type": "string" },
+          "defaultTo": { "type": "string" },
+          "defaultAccount": { "type": "string" },
+          "allowFrom": {
+            "type": "array",
+            "items": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+          },
+          "accounts": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
