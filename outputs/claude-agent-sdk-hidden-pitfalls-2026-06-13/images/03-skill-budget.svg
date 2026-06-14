@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <text x="84" y="108" fill="#0F172A" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="52" font-weight="700">Skill 召回先受预算限制</text>
+  <rect x="105" y="190" width="820" height="118" rx="18" fill="#EFF6FF" stroke="#2563EB" stroke-width="4"/>
+  <text x="140" y="263" fill="#1D4ED8" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="34" font-weight="700">Skill 描述预算</text>
+  <path d="M925 160v430" stroke="#F97316" stroke-width="6" stroke-dasharray="14 12"/>
+  <text x="948" y="245" fill="#F97316" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="28" font-weight="700">超出后</text>
+  <text x="948" y="286" fill="#F97316" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="28" font-weight="700">描述被省略</text>
+  <g font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="25" font-weight="700">
+    <rect x="130" y="385" width="180" height="64" rx="14" fill="#10B981"/><text x="168" y="426" fill="#fff">name</text>
+    <rect x="330" y="385" width="250" height="64" rx="14" fill="#2563EB"/><text x="365" y="426" fill="#fff">description</text>
+    <rect x="620" y="385" width="180" height="64" rx="14" fill="#10B981"/><text x="658" y="426" fill="#fff">name</text>
+    <rect x="955" y="385" width="250" height="64" rx="14" fill="#E5E7EB"/><text x="982" y="426" fill="#64748B">description</text>
+  </g>
+  <text x="130" y="555" fill="#475569" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="30" font-weight="700">描述没进上下文，模型就看不到</text>
+</svg>

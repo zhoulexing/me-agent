@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#F8FAFC"/>
+  <defs><pattern id="g" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0v32" fill="none" stroke="#DBEAFE"/></pattern></defs>
+  <rect width="1280" height="720" fill="url(#g)"/>
+  <text x="88" y="106" fill="#0F172A" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="52" font-weight="700">先看完整请求体</text>
+  <rect x="390" y="165" width="500" height="390" rx="28" fill="#FFFFFF" stroke="#2563EB" stroke-width="4"/>
+  <text x="500" y="230" fill="#1D4ED8" font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="34" font-weight="700">模型真正看到的内容</text>
+  <g font-family="PingFang SC, Noto Sans SC, sans-serif" font-size="28" font-weight="700">
+    <rect x="450" y="280" width="380" height="54" rx="12" fill="#DBEAFE"/><text x="492" y="317" fill="#1E3A8A">系统提示词</text>
+    <rect x="450" y="352" width="380" height="54" rx="12" fill="#CCFBF1"/><text x="492" y="389" fill="#115E59">消息列表</text>
+    <rect x="450" y="424" width="380" height="54" rx="12" fill="#E0E7FF"/><text x="492" y="461" fill="#3730A3">工具与 Skill 描述</text>
+    <rect x="450" y="496" width="380" height="54" rx="12" fill="#F1F5F9"/><text x="492" y="533" fill="#334155">模型响应</text>
+  </g>
+  <circle cx="230" cy="408" r="76" fill="none" stroke="#06B6D4" stroke-width="16"/>
+  <path d="M282 460l80 80" stroke="#06B6D4" stroke-width="18" stroke-linecap="round"/>
+</svg>
