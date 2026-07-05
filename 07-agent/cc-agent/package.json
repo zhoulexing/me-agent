@@ -1,0 +1,28 @@
+{
+  "name": "cc-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.201",
+    "@hono/node-server": "^1.13.8",
+    "@larksuiteoapi/node-sdk": "^1.68.0",
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^16.4.7",
+    "hono": "^4.6.18",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
