@@ -1,0 +1,2 @@
+"""cc-agent application package."""
+

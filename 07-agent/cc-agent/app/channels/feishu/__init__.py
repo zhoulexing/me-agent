@@ -1,0 +1,2 @@
+"""Feishu channel adapter."""
+

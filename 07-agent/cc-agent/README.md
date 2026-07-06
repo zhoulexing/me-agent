@@ -1,48 +1,43 @@
 # cc-agent
 
-TypeScript agent service based on `@anthropic-ai/claude-agent-sdk`, with channel adapters for Feishu and WeChat.
+Python 3.11 agent runtime using `claude_agent_sdk` and `uv`.
 
-By default it reads local credentials from:
-
-- `/Users/zhouyuexing/.youzan-business-assistant/config.json`
-- `/Users/zhouyuexing/.claude/settings.json`
-
-```bash
-yarn install
-cp .env.example .env
-yarn dev
-```
-
-Feishu uses the official SDK WebSocket client. After `FEISHU_ENABLED=true`,
-`FEISHU_APP_ID`, and `FEISHU_APP_SECRET` are configured in `.env`, just run:
-
-```bash
-npm run dev
-```
-
-The app will connect with `@larksuiteoapi/node-sdk` `WSClient`. In the Feishu
-developer console, make sure event subscription mode is set to long connection:
-Events and Callbacks -> Mode of event/callback subscription -> Receive
-events/callbacks through persistent connection.
-
-WeChat bridge endpoint:
+## Runtime Flow
 
 ```text
-POST /channels/wechat/events
+channels/<id>/runtime.py
+  -> AgentRunParams
+  -> agent/session.py run(params, callbacks)
+  -> agent/client.py query / receive SDK messages
+  -> AgentRunCallbacks
+  -> channels/<id> outbound behavior
 ```
 
-Local non-streaming test:
+## Start
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8787/agent/messages \
-  -H 'content-type: application/json' \
-  -d '{"content":"用中文回复两个字：你好","channelId":"wechat","appId":"local","groupId":"local-test","isPrivate":true}'
+cd 07-agent/cc-agent
+uv sync
+./start.sh
 ```
 
-Local streaming test:
+Health check:
 
 ```bash
-curl -sS -N -X POST http://127.0.0.1:8787/agent/messages/stream \
-  -H 'content-type: application/json' \
-  -d '{"content":"用中文回复两个字：你好","channelId":"wechat","appId":"local","groupId":"local-stream-test","isPrivate":true}'
+curl http://127.0.0.1:8080/health
 ```
+
+Run an agent message through the HTTP gateway:
+
+```bash
+curl -X POST http://127.0.0.1:8080/api/agent/run \
+  -H 'content-type: application/json' \
+  -d '{"channelId":"feishu","appId":"local","groupId":"cli","senderId":"u1","content":"hello","isPrivate":false,"source":"user"}'
+```
+
+## Storage Contract
+
+SQLite stores `session_key` as the canonical channel session identity. Tables do
+not duplicate `channel_id`, `app_id`, or `group_id`. Use
+`build_session_key(channel_id, app_id, group_id)` and `parse_session_key()` at
+adapter boundaries.
