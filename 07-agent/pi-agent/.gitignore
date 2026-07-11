@@ -1,6 +1,0 @@
-node_modules/
-dist/
-.pi-agent-runtime/
-.npm-cache/
-.env
-coverage/
