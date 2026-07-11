@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZLX Video Cut"
+  short_description: "中文口播视频剪辑、逐字校对字幕、说明图、封面制作与成片质检"
+  default_prompt: "Use $zlx-video-cut to edit this talking-head video with reviewed Chinese captions, key explanation cards, and a first-frame cover."

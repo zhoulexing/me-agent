@@ -3,7 +3,7 @@ node_modules/
 # 生成的图片
 assets/
 *.png
-*.jpg
+# *.jpg
 *.jpeg
 *.webp
 
@@ -38,3 +38,4 @@ midscene_run/
 
 cc-agent/data/
 dist
+edit/
