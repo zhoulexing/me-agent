@@ -17,6 +17,19 @@
 
 ---
 
+## 笔记 / 知识库
+
+### 得到大脑（Get笔记） / getnote
+
+- **类型**：skill
+- **来源**：https://clawhub.ai/iswalle/getnote
+- **安装**：实测当前 OpenClaw CLI 可用命令是 `openclaw skills install getnote`，会从 ClawHub 安装最新版本；页面展示的 `@iswalle/getnote` 在当前 CLI 中会报 `Invalid skill slug`。本次实际安装方式是从 `https://clawhub.ai/api/v1/download?slug=getnote&version=1.8.9` 下载 zip，解压到 `skills/getnote/`，并软链到 Codex 全局技能目录：`ln -s /Users/zhouyuexing/.openclaw/workspace/me-agent/skills/getnote /Users/zhouyuexing/.codex/skills/getnote`。使用前需要配置 `GETNOTE_API_KEY` 和 `GETNOTE_CLIENT_ID`。
+- **作用**：连接得到大脑 / Get笔记，用于保存、搜索、查看和管理个人笔记与知识库。
+- **核心用法**：用户说“记一下”“存到笔记”“保存这个链接”“搜一下笔记”“最近存了什么”“加到知识库”等时触发；调用前读取 skill 内对应 `references/save.md`、`references/search.md`、`references/list.md`、`references/knowledge.md` 等文档，再按 API 返回结果确认保存或查询是否成功。
+- **适用场景**：把对话内容、链接、图片、资料摘录同步到 Get 笔记；从 Get 笔记按语义搜索历史资料；管理知识库、标签和笔记列表；和本仓库的 `zlx-note` 本地笔记体系配合做本地记录与外部同步。
+
+---
+
 ## 生图 / 视觉内容
 
 ### baoyu-infographic
