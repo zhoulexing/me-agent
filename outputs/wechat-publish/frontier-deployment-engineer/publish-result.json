@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "dryRun": false,
+  "action": "create-draft",
+  "title": "前沿部署工程师，是AI时代很火的岗位",
+  "author": "",
+  "digest": "",
+  "htmlFile": "/Users/zhouyuexing/.openclaw/workspace/me-agent/wechat-publish/frontier-deployment-engineer/article.html",
+  "coverImage": "images/cover.png",
+  "bodyImageCount": 4,
+  "mediaId": "esdiBKaqaq9S3FNdS_AMhaJxsCGawUAZTQvJgaWbc3oo5CisN2Gi_eyUph4ZZX96",
+  "wechat": {
+    "media_id": "esdiBKaqaq9S3FNdS_AMhaJxsCGawUAZTQvJgaWbc3oo5CisN2Gi_eyUph4ZZX96",
+    "item": [
+      {
+        "index": 0,
+        "ad_count": 2
+      }
+    ]
+  }
+}

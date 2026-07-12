@@ -1,0 +1,24 @@
+{
+  "insertions": [
+    {
+      "before": 4,
+      "image": "images/01-fde-in-the-field.png",
+      "alt": "前沿部署工程师嵌入医院真实业务现场并持续调整AI智能体"
+    },
+    {
+      "before": 14,
+      "image": "images/02-dirty-work-iceberg.png",
+      "alt": "AI模型只是冰山一角，数据集成验证监控等工作隐藏在水面下"
+    },
+    {
+      "before": 21,
+      "image": "images/03-fde-vs-onsite.png",
+      "alt": "传统驻场工程师与前沿部署工程师工作方式对比"
+    },
+    {
+      "before": 29,
+      "image": "images/04-cross-functional-value.png",
+      "alt": "AI技术软件工程行业业务和组织协作能力在FDE岗位上交汇"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布微信公众号文章"
+  short_description: "根据原文生成封面和配图、完成公众号排版并发布图文草稿"
+  default_prompt: "使用 $zlx-publish-wechat-article 为这篇文章生成封面、正文配图、公众号排版并发布到草稿箱。"
