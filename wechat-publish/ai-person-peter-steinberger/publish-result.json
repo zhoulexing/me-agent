@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "dryRun": false,
+  "action": "create-draft",
+  "title": "AI人物解读 01：Peter Steinberger",
+  "author": "",
+  "digest": "OpenClaw 不是凭空出现的。Peter 的经历提醒我：AI 时代要先行动、持续尝试，用现实反馈修正方向。",
+  "htmlFile": "/Users/zhouyuexing/.openclaw/workspace/me-agent/wechat-publish/ai-person-peter-steinberger/article.html",
+  "coverImage": "images/cover.png",
+  "bodyImageCount": 4,
+  "mediaId": "esdiBKaqaq9S3FNdS_AMhZeq0iWAHvbmHh5UQeOxIjO8YqZ3ezT0lmGkhzDwmMTf",
+  "wechat": {
+    "media_id": "esdiBKaqaq9S3FNdS_AMhZeq0iWAHvbmHh5UQeOxIjO8YqZ3ezT0lmGkhzDwmMTf",
+    "item": [
+      {
+        "index": 0,
+        "ad_count": 2
+      }
+    ]
+  }
+}

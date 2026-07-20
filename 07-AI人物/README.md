@@ -9,3 +9,4 @@
 - [Steve Yegge](./Steve%20Yegge/)：候选
 - [Andrej Karpathy](./Andrej%20Karpathy/)：候选
 - [Harrison Chase](./Harrison%20Chase/)：候选
+- [Richard Sutton](./Richard%20Sutton/)：候选

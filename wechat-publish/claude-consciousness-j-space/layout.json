@@ -1,0 +1,32 @@
+{
+  "insertions": [
+    {
+      "before": 6,
+      "heading": "从输入输出，走进模型内部",
+      "image": "images/01-black-box-window.png",
+      "alt": "输入输出黑盒被打开观察窗口，内部隐藏状态与中间概念变得可见"
+    },
+    {
+      "before": 16,
+      "heading": "关键证据：改变概念，答案跟着改变",
+      "image": "images/02-causal-intervention.png",
+      "alt": "模型内部的蜘蛛概念被替换为蚂蚁，后续计算路径随之改变"
+    },
+    {
+      "before": 28,
+      "heading": "J-space：模型内部的公共工作台",
+      "image": "images/03-shared-workbench.png",
+      "alt": "多个神经计算模块共同读写中央概念工作台"
+    },
+    {
+      "before": 32,
+      "heading": "访问意识，不等于主观体验",
+      "image": "images/04-access-vs-experience.png",
+      "alt": "可观察的访问意识因果链与不可验证的主观体验形成对比"
+    },
+    {
+      "before": 38,
+      "heading": "真正重要的是：黑盒正在被打开"
+    }
+  ]
+}

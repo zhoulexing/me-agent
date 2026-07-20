@@ -1,0 +1,28 @@
+{
+  "insertions": [
+    {
+      "before": 5,
+      "heading": "Agent 走出聊天框",
+      "image": "images/01-agent-out-of-chat.png",
+      "alt": "AI Agent 从聊天框连接到文件、浏览器、终端和日常工具"
+    },
+    {
+      "before": 7,
+      "heading": "长期积累的产品判断",
+      "image": "images/02-builder-foundation.png",
+      "alt": "从单一 PDF 工具到跨平台开发者产品的能力积累"
+    },
+    {
+      "before": 11,
+      "heading": "重新找回构建状态",
+      "image": "images/03-spark-again.png",
+      "alt": "经历空洞期后借助 AI 工具重新开始构建"
+    },
+    {
+      "before": 17,
+      "heading": "很多东西是试出来的",
+      "image": "images/04-try-and-feedback.png",
+      "alt": "多次尝试、失败和反馈逐渐汇聚成清晰方向"
+    }
+  ]
+}

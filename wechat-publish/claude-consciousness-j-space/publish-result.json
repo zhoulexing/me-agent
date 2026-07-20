@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "dryRun": false,
+  "action": "create-draft",
+  "title": "Claude 真的有意识了吗？",
+  "author": "",
+  "digest": "",
+  "htmlFile": "/Users/zhouyuexing/.openclaw/workspace/me-agent/wechat-publish/claude-consciousness-j-space/article.html",
+  "coverImage": "images/cover.png",
+  "bodyImageCount": 4,
+  "mediaId": "esdiBKaqaq9S3FNdS_AMhaiNNpLsuPfwrcopCp7HLxyO8JCsBLUB_G7iQqUTZnHJ",
+  "wechat": {
+    "media_id": "esdiBKaqaq9S3FNdS_AMhaiNNpLsuPfwrcopCp7HLxyO8JCsBLUB_G7iQqUTZnHJ",
+    "item": [
+      {
+        "index": 0,
+        "ad_count": 2
+      }
+    ]
+  }
+}

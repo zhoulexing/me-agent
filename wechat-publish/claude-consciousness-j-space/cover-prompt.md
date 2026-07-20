@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: WeChat Official Account cover
+Primary request: Create a wide editorial illustration about whether Claude is conscious and how J-space opens a narrow view into a language model's internal reasoning. Show a matte-black cognitive box opened by a thin vertical seam, revealing a luminous shared conceptual workspace inside: interconnected abstract neural layers, one central glowing concept node, and subtle causal pathways that can be observed and intervened upon.
+Style/medium: premium Chinese technology-magazine editorial illustration; clean semi-abstract 3D forms mixed with precise infographic linework; restrained and intellectually serious, not science-fiction spectacle.
+Composition/framing: final image must work at exactly 2.35:1 after center cropping. Keep the complete black box, open seam, main concept node, all key symbols, and semantic focus entirely inside the centered square safe zone. The centered square crop must remain a complete, independently understandable image. Use the left and right wings only for dark atmospheric gradients, faint neural traces, and secondary decoration.
+Lighting/mood: controlled inner cyan-green glow against deep indigo and charcoal; quiet, investigative, slightly mysterious.
+Color palette: deep indigo, charcoal black, desaturated cyan, restrained emerald, tiny warm-white highlights.
+Constraints: no title text; no letters or numbers; no human face; no humanoid robot; no brain-in-a-jar cliché; no soul, halo, angel, or religious symbolism; no watermark, logo, UI chrome, accidental text, or presentation frame. Generous breathing room. The subject must not be cut off by the square safe-zone crop.

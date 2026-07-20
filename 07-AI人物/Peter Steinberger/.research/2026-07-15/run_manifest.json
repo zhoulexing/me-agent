@@ -1,0 +1,20 @@
+{
+  "version": "3.0.0",
+  "query": "Peter Steinberger：OpenClaw 核心产品与技术架构",
+  "mode": "standard",
+  "started_at": "2026-07-15T00:21:53.054060+00:00",
+  "finished_at": null,
+  "assumptions": [],
+  "provider_config": {
+    "primary": "search-cli",
+    "scholarly": null
+  },
+  "report_dir": "/Users/zhouyuexing/.openclaw/workspace/me-agent/07-AI人物/Peter Steinberger/.research/2026-07-15",
+  "artifact_paths": {
+    "sources": "sources.jsonl",
+    "evidence": "evidence.jsonl",
+    "claims": "claims.jsonl",
+    "report": "report.md"
+  },
+  "continuation": null
+}
