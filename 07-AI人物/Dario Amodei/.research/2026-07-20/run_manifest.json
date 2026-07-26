@@ -1,0 +1,26 @@
+{
+  "version": "3.0.0",
+  "query": "Dario Amodei six-act research: formative loss, scaling, OpenAI split, Anthropic safety, geopolitics, and accountability",
+  "mode": "deep",
+  "started_at": "2026-07-20T00:12:23.267960+00:00",
+  "finished_at": "2026-07-20T00:28:00+00:00",
+  "assumptions": [
+    "The report treats retrospective accounts of personal motives as testimony, not independently proven causation.",
+    "Current policy and governance findings are verified through 2026-07-20 Asia/Shanghai.",
+    "Claims about classified national-security deployments remain company-reported unless independently documented."
+  ],
+  "provider_config": {
+    "primary": "search-cli",
+    "scholarly": null
+  },
+  "report_dir": "/Users/zhouyuexing/.openclaw/workspace/me-agent/07-AI人物/Dario Amodei/.research/2026-07-20",
+  "artifact_paths": {
+    "sources": "sources.jsonl",
+    "evidence": "evidence.jsonl",
+    "claims": "claims.jsonl",
+    "report": "report.md",
+    "html": "report.html",
+    "pdf": "report.pdf"
+  },
+  "continuation": null
+}

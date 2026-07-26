@@ -5,6 +5,7 @@
 ## 人物
 
 - [Peter Steinberger](./Peter%20Steinberger/)：首期研究对象
+- [Dario Amodei](./Dario%20Amodei/)：第二期研究对象
 - [Simon Willison](./Simon%20Willison/)：候选
 - [Steve Yegge](./Steve%20Yegge/)：候选
 - [Andrej Karpathy](./Andrej%20Karpathy/)：候选
