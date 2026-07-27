@@ -11,3 +11,4 @@
 - [Andrej Karpathy](./Andrej%20Karpathy/)：候选
 - [Harrison Chase](./Harrison%20Chase/)：候选
 - [Richard Sutton](./Richard%20Sutton/)：候选
+- [Dan Koe](./Dan%20Koe/)：候选
