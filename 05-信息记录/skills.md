@@ -59,6 +59,15 @@
 - **核心用法**：输入文章或 Markdown，让 Agent 拆分段落、判断插图点、生成统一风格插图。
 - **适用场景**：长文配图、教程插图、专栏文章视觉增强、内容发布前的图文包装。
 
+### Cowart
+
+- **类型**：Codex plugin（内含 MCP widget 与 skills）
+- **来源**：https://github.com/zhongerxin/Cowart
+- **安装**：先执行 `codex plugin marketplace add zhongerxin/Cowart --ref main` 注册 Git marketplace，再执行 `codex plugin add cowart@cowart-github` 安装，并用 `codex plugin list` 确认已启用；安装或升级后新建一个 Codex 任务，让新的 skills 和 MCP 工具完整加载。
+- **作用**：在 Codex 内提供基于 tldraw 的原生无限画布，用于视觉思考、图片标注、AI 生图、可运行的单文件 AI HTML 和 AI Slides；画布及素材保存在当前项目的 `canvas/` 目录。
+- **核心用法**：让 Codex“打开当前项目的 Cowart 画布”；可创建并选中 `AI 图片` 占位框后输入提示词和参考图生成图片，创建 `AI HTML` 生成并嵌入 16:9 HTML 页面，使用 `AI Slides` 组织或批量生成页面；对图片添加箭头和文字标注后点击“按标注修改”，Codex 会生成不含标注痕迹的新图并放在原图旁边，保留原图和标注不动。
+- **适用场景**：在 Codex 中做无限画布式构思、图片生成与迭代、基于局部标注的改图、网页视觉稿、演示页面编排，以及需要把图片、HTML 和 Slides 放在同一画布协作的任务。
+
 ---
 
 ## 架构图 / 图表

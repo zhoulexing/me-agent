@@ -1,0 +1,229 @@
+{
+  "schema": {
+    "schemaVersion": 2,
+    "sequences": {
+      "com.tldraw.store": 5,
+      "com.tldraw.asset": 1,
+      "com.tldraw.camera": 1,
+      "com.tldraw.document": 2,
+      "com.tldraw.instance": 26,
+      "com.tldraw.instance_page_state": 5,
+      "com.tldraw.page": 1,
+      "com.tldraw.instance_presence": 6,
+      "com.tldraw.pointer": 1,
+      "com.tldraw.shape": 4,
+      "com.tldraw.user": 1,
+      "com.tldraw.asset.image": 6,
+      "com.tldraw.asset.video": 5,
+      "com.tldraw.asset.bookmark": 2,
+      "com.tldraw.shape.arrow": 8,
+      "com.tldraw.shape.bookmark": 2,
+      "com.tldraw.shape.draw": 4,
+      "com.tldraw.shape.embed": 4,
+      "com.tldraw.shape.frame": 1,
+      "com.tldraw.shape.geo": 11,
+      "com.tldraw.shape.group": 0,
+      "com.tldraw.shape.highlight": 3,
+      "com.tldraw.shape.image": 5,
+      "com.tldraw.shape.line": 5,
+      "com.tldraw.shape.note": 12,
+      "com.tldraw.shape.text": 4,
+      "com.tldraw.shape.video": 4,
+      "com.tldraw.binding.arrow": 1
+    }
+  },
+  "store": {
+    "shape:annotation-edit-20260806-154035": {
+      "x": 1122.7401250696455,
+      "y": -189.55790094339625,
+      "rotation": 0,
+      "isLocked": false,
+      "opacity": 1,
+      "meta": {
+        "cowartGeneratedFromAnnotationEdit": true,
+        "cowartAnnotationSourceShapeId": "shape:g4BXRzDrqXHzNBDJlyYqv",
+        "cowartAnnotationScreenshot": "annotation-edit-20260806T154035Z.png"
+      },
+      "id": "shape:annotation-edit-20260806-154035",
+      "type": "image",
+      "props": {
+        "w": 1592,
+        "h": 1052,
+        "assetId": "asset:annotation-edit-20260806-154035",
+        "playing": true,
+        "url": "",
+        "flipX": false,
+        "flipY": false,
+        "altText": "Cowart 标注修订图：杭州西站改为杭州东站",
+        "crop": null
+      },
+      "parentId": "page:page",
+      "index": "a3",
+      "typeName": "shape"
+    },
+    "shape:Cc4K4O89ar7CddISpkszW": {
+      "x": 583.7115179673392,
+      "y": -524.430629668819,
+      "rotation": 0,
+      "isLocked": false,
+      "opacity": 1,
+      "meta": {},
+      "id": "shape:Cc4K4O89ar7CddISpkszW",
+      "type": "text",
+      "props": {
+        "color": "black",
+        "size": "m",
+        "w": 8,
+        "font": "draw",
+        "textAlign": "start",
+        "autoSize": true,
+        "scale": 1,
+        "richText": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph"
+            }
+          ]
+        }
+      },
+      "parentId": "page:page",
+      "index": "a4HETXIV",
+      "typeName": "shape"
+    },
+    "user:_sGpixLZWbY5ujhv_tA8g": {
+      "name": "",
+      "color": "#02B1CC",
+      "imageUrl": "",
+      "meta": {},
+      "id": "user:_sGpixLZWbY5ujhv_tA8g",
+      "typeName": "user"
+    },
+    "asset:1943028252": {
+      "id": "asset:1943028252",
+      "type": "image",
+      "typeName": "asset",
+      "props": {
+        "name": "asset-1943028252.jpg",
+        "src": "/page-assets/page/asset-1943028252.jpg",
+        "w": 1592,
+        "h": 1052,
+        "fileSize": 355497,
+        "mimeType": "image/jpeg",
+        "isAnimated": false
+      },
+      "meta": {}
+    },
+    "shape:g4BXRzDrqXHzNBDJlyYqv": {
+      "x": -454.5977004716981,
+      "y": -189.55790094339625,
+      "rotation": 0,
+      "isLocked": false,
+      "opacity": 1,
+      "meta": {},
+      "id": "shape:g4BXRzDrqXHzNBDJlyYqv",
+      "type": "image",
+      "props": {
+        "w": 1592,
+        "h": 1052,
+        "assetId": "asset:1943028252",
+        "playing": true,
+        "url": "",
+        "flipX": false,
+        "flipY": false,
+        "altText": "",
+        "crop": null
+      },
+      "parentId": "page:page",
+      "index": "a1PvUzH8",
+      "typeName": "shape"
+    },
+    "asset:annotation-edit-20260806-154035": {
+      "id": "asset:annotation-edit-20260806-154035",
+      "typeName": "asset",
+      "type": "image",
+      "props": {
+        "name": "annotation-edit-20260806-154035.png",
+        "src": "/page-assets/page/annotation-edit-20260806-154035.png",
+        "w": 1552,
+        "h": 1013,
+        "fileSize": 1285987,
+        "mimeType": "image/png",
+        "isAnimated": false
+      },
+      "meta": {}
+    },
+    "page:page": {
+      "meta": {},
+      "id": "page:page",
+      "name": "Page 1",
+      "index": "a1",
+      "typeName": "page"
+    },
+    "document:document": {
+      "gridSize": 10,
+      "name": "",
+      "meta": {},
+      "id": "document:document",
+      "typeName": "document"
+    },
+    "shape:HypzDU8WdhfB5-Coo2GxW": {
+      "x": -116.49716981132076,
+      "y": 1118.3384433962265,
+      "rotation": 0,
+      "isLocked": false,
+      "opacity": 1,
+      "meta": {
+        "cowartAnnotationArrow": true
+      },
+      "id": "shape:HypzDU8WdhfB5-Coo2GxW",
+      "type": "arrow",
+      "props": {
+        "kind": "arc",
+        "elbowMidPoint": 0.5,
+        "dash": "draw",
+        "size": "m",
+        "fill": "none",
+        "color": "red",
+        "labelColor": "red",
+        "bend": 48,
+        "start": {
+          "x": 0,
+          "y": 0
+        },
+        "end": {
+          "x": -38.802653301886835,
+          "y": -1030.8692806603772
+        },
+        "arrowheadStart": "none",
+        "arrowheadEnd": "arrow",
+        "richText": {
+          "type": "doc",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "dir": "auto"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "把杭州西改成杭州东"
+                }
+              ]
+            }
+          ]
+        },
+        "labelPosition": 0,
+        "font": "draw",
+        "scale": 1
+      },
+      "parentId": "page:page",
+      "index": "a2iw2i3V",
+      "typeName": "shape"
+    }
+  }
+}
