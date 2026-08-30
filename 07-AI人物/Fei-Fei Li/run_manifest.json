@@ -1,0 +1,36 @@
+{
+  "version": "3.0.0",
+  "query": "李飞飞（Fei-Fei Li）完整人物研究：出身背景、家庭迁移、教育经历、学术任职、主要研究方向、代表论文与项目、ImageNet、AI4ALL、HAI、World Labs、荣誉、公共政策立场与争议边界",
+  "mode": "standard",
+  "started_at": "2026-08-30T11:37:09.992782+00:00",
+  "finished_at": "2026-08-30T11:51:28Z",
+  "assumptions": [
+    "Publicly verifiable material is comprehensive but not literally every item among 400+ publications.",
+    "Migration age is reported as high-school age, approximately 15-16, because reliable sources vary.",
+    "Current Stanford role follows the May 2026 institutional announcement."
+  ],
+  "provider_config": {
+    "primary": "search-cli",
+    "scholarly": null
+  },
+  "report_dir": "/Users/zhouyuexing/.openclaw/workspace/me-agent/07-AI人物/Fei-Fei Li",
+  "artifact_paths": {
+    "sources": "sources.jsonl",
+    "evidence": "evidence.jsonl",
+    "claims": "claims.jsonl",
+    "report": "research_report_20260830_fei_fei_li.md",
+    "html": "research_report_20260830_fei_fei_li.html",
+    "pdf": "research_report_20260830_fei_fei_li.pdf"
+  },
+  "validation": {
+    "report_structure": "passed",
+    "citation_numbering": "passed",
+    "source_count": 32,
+    "evidence_count": 34,
+    "claim_count": 12,
+    "pdf_pages": 12,
+    "pdf_visual_review": "passed_all_pages",
+    "link_recheck": "unavailable_in_sandbox; sources were opened during retrieval"
+  },
+  "continuation": null
+}
