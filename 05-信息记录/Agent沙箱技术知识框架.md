@@ -1,8 +1,9 @@
 # Agent 沙箱技术知识框架
 
 - **建立日期**：2026-08-10
+- **最近更新**：2026-08-16
 - **类目**：长期技术研究
-- **状态**：第一版框架
+- **状态**：第一版框架，持续补充
 - **研究原则**：先讲安全边界和底层机制，再研究具体产品与源码
 
 ## 一、这份框架要回答什么
@@ -41,6 +42,8 @@ Agent 沙箱不是某一种产品，也不是简单地“把 Agent 放进 Docker
 ---
 
 ## 三、Agent 运行环境的完整分层
+
+### 3.1 先看六层安全体系
 
 从底层到上层，可以把 Agent 的安全体系分成六层：
 
@@ -83,6 +86,247 @@ Kubernetes API
 - Pod 是 Kubernetes 的运行和调度单元，不是一种底层隔离技术。
 - runc、gVisor、Kata 决定 Pod 在节点上如何执行。
 - Pod 内进程沙箱决定 Agent 能使用 Pod 内的哪些能力。
+
+### 3.2 硬件层：物理服务器与虚拟化扩展
+
+物理服务器提供真实的 CPU、内存、存储和网卡。所有 VM、容器和 Agent 最终都在这些硬件资源上运行。
+
+现代 CPU 通常内置硬件虚拟化扩展，例如：
+
+- Intel VT-x；
+- AMD-V。
+
+这些扩展让 Guest OS 的大部分指令能够由 CPU 直接执行，并让 Hypervisor 控制特权指令、地址空间切换和虚拟 CPU 状态。它们为虚拟机提供硬件加速和隔离基础，但自身不是完整的虚拟机系统。
+
+### 3.3 Host Kernel：宿主机内核
+
+Host Kernel 是直接运行在物理硬件上的操作系统内核。在当前讨论中通常指节点上的 Linux 内核。
+
+它负责管理：
+
+- 物理 CPU 调度；
+- 内存和地址空间；
+- 进程与线程；
+- 文件系统；
+- 网络协议栈；
+- 设备驱动；
+- 权限和安全模块。
+
+容器和虚拟机都会使用 Host Kernel，但使用方式不同：原生容器中的应用直接使用 Host Kernel；虚拟机中的应用先使用 Guest Kernel，再经过虚拟化边界进入 Host Kernel。
+
+#### Namespace：资源视图和作用域隔离
+
+Namespace 把一部分原本全局的内核资源包装成局部视图，让一组进程感觉自己拥有独立实例。
+
+常见类型包括：
+
+| Namespace | 主要隔离对象 |
+| --- | --- |
+| PID | 进程编号和可见进程树 |
+| Network | 网卡、IP、路由、端口和网络栈视图 |
+| Mount | 文件系统挂载视图 |
+| User | UID、GID 和 namespace 内的能力 |
+| UTS | 主机名和域名 |
+| IPC | System V IPC、消息队列和共享内存等 |
+| Cgroup | 进程看到的 cgroup 层级视图 |
+
+可以把 Namespace 粗略理解成“看见一个独立环境”，但它不只是隐藏信息，也会把相关内核操作限制在对应作用域内。
+
+Namespace 本身不是完整安全方案。它通常要与权限、Capabilities、Seccomp、只读挂载和 LSM 一起使用。
+
+#### Cgroups：资源核算与限制
+
+Cgroups 对一组进程进行资源归类、核算和控制，主要用于：
+
+- CPU 时间和权重；
+- 内存上限；
+- 进程数量；
+- 块设备 I/O；
+- 部分设备和资源治理。
+
+Namespace 主要解决“看到什么和处在哪个作用域”，Cgroups 主要解决“能够使用多少资源”。
+
+#### KVM：Linux 内核中的虚拟化能力
+
+KVM 是 Linux 内核中的虚拟化模块。它利用 CPU 的硬件虚拟化扩展，为用户态 VMM 提供运行 vCPU、管理 Guest 内存和处理中断等能力。
+
+KVM 不是一套完整的虚拟机产品，也不负责提供完整的磁盘、网卡、主板等设备模型。完整 VM 通常还需要 QEMU、Firecracker、Cloud Hypervisor 等用户态 VMM 配合。
+
+可以简化理解为：
+
+```text
+KVM
+  负责让Guest CPU和内存高效、安全地运行
+
+用户态VMM
+  负责组织虚拟机生命周期并提供必要的虚拟设备
+```
+
+### 3.4 VMM / Hypervisor：把 KVM 组织成一台虚拟机
+
+VMM 是 Virtual Machine Monitor。它通过 `/dev/kvm` 等接口使用 KVM，并负责构造一台可运行的虚拟机。
+
+VMM 通常负责：
+
+- 创建和管理 vCPU；
+- 配置 Guest 内存；
+- 提供虚拟磁盘和虚拟网卡；
+- 启动 Guest Kernel；
+- 处理 Guest 与宿主机之间的 I/O；
+- 管理虚拟机启动、停止、快照等生命周期。
+
+#### 标准 VM
+
+在 Linux 场景中，QEMU 经常与 KVM 配合运行标准虚拟机。QEMU 提供广泛的 PC 设备模型和兼容能力，Guest 中运行独立的完整操作系统内核。
+
+```text
+物理硬件
+  → Host Kernel + KVM
+  → QEMU VMM
+  → Guest Kernel
+  → Guest进程
+```
+
+标准 VM 兼容性强、隔离边界清楚，但启动时间、内存占用和设备模型攻击面通常高于专用 MicroVM。
+
+#### MicroVM
+
+MicroVM 仍然拥有独立 Guest Kernel，但会裁剪通用 PC 兼容能力和不必要的虚拟设备，只保留计算、磁盘、网络等工作负载必需功能。
+
+Firecracker 是典型 MicroVM VMM。它基于 KVM，使用精简设备模型，目标是在保持硬件虚拟化边界的同时降低启动时间、内存开销和攻击面。
+
+核心区分是：
+
+| 类型 | 内核关系 |
+| --- | --- |
+| 标准 VM | 每个 VM 拥有独立 Guest Kernel |
+| MicroVM | 每个 MicroVM 仍然拥有独立 Guest Kernel |
+| runc 原生容器 | 所有容器共享 Host Kernel |
+
+### 3.5 容器管理与底层运行时
+
+这一层经常因为都被叫作“容器运行时”而产生混淆。可以先分成两类角色。
+
+#### containerd / CRI-O：容器管理运行时
+
+它们是常驻节点的容器管理服务，负责：
+
+- 镜像拉取和本地管理；
+- 容器快照和 rootfs 准备；
+- 容器及 Pod Sandbox 生命周期；
+- 与 kubelet 的 CRI 通信；
+- 调用更底层的 runtime handler；
+- 配合 CNI、存储和监控组件完成运行环境准备。
+
+containerd 不等于 runc。containerd 负责长期管理，runc 等低层运行时负责根据 OCI 配置创建具体容器进程。
+
+#### runc / gVisor / Kata：Pod 的底层执行方式
+
+| 运行方式 | 底层机制 | 内核关系 |
+| --- | --- | --- |
+| runc | Namespace、Cgroups、Capabilities、Seccomp、LSM | 应用直接共享 Host Kernel |
+| gVisor | `runsc` + 用户态 Sentry 应用内核 | 应用 syscall 先由 Sentry 实现和处理 |
+| Kata | 轻量 VM + Guest Kernel + VM 内容器 | Pod 通常不直接共享 Host Kernel |
+
+这里需要校正两个常见说法：
+
+1. gVisor 不是把每个 syscall 简单“过滤后原样转发”。它在用户态重新实现大量 Linux 内核接口，再由 Sentry 以自己的受控参数调用少量宿主机能力。
+2. Kata 在 Kubernetes 中的典型映射是一个 Pod Sandbox 对应一台轻量 VM，Pod 中的多个容器运行在这台 VM 内；具体映射仍取决于运行时版本和配置。
+
+### 3.6 Kubernetes 集群编排层
+
+#### Pod
+
+Pod 是 Kubernetes 最小的可部署和调度计算单元。一个 Pod 可以包含一个或多个强耦合容器。
+
+同一 Pod 内的容器：
+
+- 被调度到同一节点；
+- 通常共享同一个网络 namespace、Pod IP 和 localhost；
+- 可以共享 Volume；
+- 可以按照配置共享其他 namespace；
+- 生命周期由同一个 Pod 管理。
+
+Pod 是 Kubernetes 抽象，不等于某一种具体的内核隔离机制。
+
+#### Kubelet
+
+Kubelet 是每个 Kubernetes 节点上的代理组件。它接收控制平面分配到当前节点的 Pod 目标状态，并通过 CRI 驱动容器运行时创建、检查和销毁 Pod。
+
+#### CRI
+
+CRI 是 kubelet 与容器运行时之间的 gRPC 接口契约，定义 Pod Sandbox、Container、Image 等生命周期操作。
+
+CRI 不是一个独立运行进程，也不是具体 runtime；它是双方遵循的标准接口。
+
+#### CNI
+
+CNI 是容器网络接口规范。具体插件负责：
+
+- 创建或接入 Pod 网络接口；
+- 分配 Pod IP；
+- 配置路由；
+- 实现集群网络连通；
+- 配合网络策略实现访问控制。
+
+containerd/CRI-O 不定义 Kubernetes 的网络模型，而是通过其 CRI 集成调用 CNI 插件完成网络配置。
+
+#### Volume
+
+Volume 是 Kubernetes 向 Pod 提供存储的抽象。它把存储挂载到一个或多个容器中，使数据不再局限于某个容器自身的临时可写层。
+
+Volume 是否在 Pod 删除后继续存在，取决于具体类型：
+
+- `emptyDir` 通常与 Pod 生命周期一致；
+- PersistentVolume 可以独立于 Pod 长期存在；
+- Secret、ConfigMap 等提供配置型挂载。
+
+### 3.7 本地 Docker 工具链的位置
+
+本地开发中常见的 Docker CLI 和 dockerd 主要提供开发者体验：
+
+```text
+Docker CLI
+  → dockerd
+  → containerd
+  → runc
+  → 容器进程
+```
+
+生产 Kubernetes 节点通常直接部署 containerd 或 CRI-O，由 kubelet 通过 CRI 调用，不需要经过 Docker CLI 和 dockerd。但具体环境仍可能使用其他兼容实现，不能把“生产一定没有 Docker Engine”当作绝对规则。
+
+### 3.8 两条不要混在一起的链路
+
+从控制调用方向看：
+
+```text
+Kubernetes控制平面
+  → kubelet
+  → CRI
+  → containerd / CRI-O
+  → runtime handler（runc / runsc / Kata）
+  → 容器或轻量VM中的工作负载
+  → Pod内Agent进程沙箱
+  → Agent
+```
+
+从底层依赖方向看：
+
+```text
+物理硬件
+  → Host Kernel
+  ├── Namespace / Cgroups：支撑原生容器
+  └── KVM + VMM：支撑VM和MicroVM
+      → Guest Kernel
+```
+
+CNI、Volume、日志和可观测性并不是这条串行启动链上的同一级步骤，而是运行时在创建 Pod 时并行接入的网络、存储和运维能力。
+
+最终需要记住三条边界：
+
+1. VM/MicroVM 主要保护 Guest 工作负载到 Host Kernel 的边界；
+2. runc/gVisor/Kata 决定 Pod 到节点的底层执行和隔离方式；
+3. Pod 内 Agent 沙箱保护 Agent 到 Pod 内文件、进程、网络和凭证的边界。
 
 ---
 
@@ -635,4 +879,3 @@ Agent应用权限被绕过
 - [Firecracker：项目与架构](https://github.com/firecracker-microvm/firecracker)
 - [Firecracker：Design](https://github.com/firecracker-microvm/firecracker/blob/main/docs/design.md)
 - [Anthropic sandbox-runtime 本地源码](/Users/zhouyuexing/.openclaw/workspace/me-agent/temp/sandbox-runtime)
-

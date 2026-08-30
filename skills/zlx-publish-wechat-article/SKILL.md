@@ -115,7 +115,24 @@ node {baseDir}/scripts/publish-wechat-article.mjs draft \
   --dry-run
 ```
 
-The publisher contains `WECHAT_APP_ID` and `WECHAT_APP_SECRET` constants at the top. Fill them locally, or set `WECHAT_APP_ID` and `WECHAT_APP_SECRET` in the environment. Never print either credential or the access token.
+The publisher reads credentials from `~/.config/zlx-publish-wechat-article/config.json` by default:
+
+```json
+{
+  "appId": "your-wechat-app-id",
+  "appSecret": "your-wechat-app-secret"
+}
+```
+
+Create the directory with permission `700` and the file with permission `600`. Never commit this file. `WECHAT_APP_ID` and `WECHAT_APP_SECRET` may temporarily override the file only when both are set. `WECHAT_PUBLISH_CONFIG` or `--config` may select a different file.
+
+Check configuration without printing credentials:
+
+```bash
+node {baseDir}/scripts/publish-wechat-article.mjs check-config
+```
+
+Never print either credential or the access token.
 
 Show the user the dry-run summary: title, author, digest, body-image count, cover path, and whether this creates or updates a draft.
 

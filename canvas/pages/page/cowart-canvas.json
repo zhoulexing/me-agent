@@ -33,6 +33,64 @@
     }
   },
   "store": {
+    "shape:IfnkJXQ7eXEsXTdVfB1mN": {
+      "x": 190.1917374711743,
+      "y": 213.08587053195856,
+      "rotation": 0,
+      "isLocked": false,
+      "opacity": 1,
+      "meta": {
+        "cowartAnnotationArrow": true
+      },
+      "id": "shape:IfnkJXQ7eXEsXTdVfB1mN",
+      "type": "arrow",
+      "props": {
+        "kind": "arc",
+        "elbowMidPoint": 0.5,
+        "dash": "draw",
+        "size": "m",
+        "fill": "none",
+        "color": "red",
+        "labelColor": "red",
+        "bend": 48,
+        "start": {
+          "x": 0,
+          "y": 0
+        },
+        "end": {
+          "x": 52.73930477416059,
+          "y": 825.2760412076204
+        },
+        "arrowheadStart": "none",
+        "arrowheadEnd": "arrow",
+        "richText": {
+          "type": "doc",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "dir": "auto"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "a把字好改下仙女"
+                }
+              ]
+            }
+          ]
+        },
+        "labelPosition": 0,
+        "font": "draw",
+        "scale": 1
+      },
+      "parentId": "page:page",
+      "index": "a5CcIlhV",
+      "typeName": "shape"
+    },
     "shape:annotation-edit-20260806-154035": {
       "x": 1122.7401250696455,
       "y": -189.55790094339625,
@@ -166,6 +224,14 @@
       "meta": {},
       "id": "document:document",
       "typeName": "document"
+    },
+    "user:Tz91nm732pHrvllhAYQvZ": {
+      "name": "",
+      "color": "#E34BA9",
+      "imageUrl": "",
+      "meta": {},
+      "id": "user:Tz91nm732pHrvllhAYQvZ",
+      "typeName": "user"
     },
     "shape:HypzDU8WdhfB5-Coo2GxW": {
       "x": -116.49716981132076,

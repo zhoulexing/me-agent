@@ -1,0 +1,20 @@
+{
+  "version": "3.0.0",
+  "query": "Boris Cherny基本信息、Claude Code诞生场景、设计思想、Skills与工具组合、产品更新原则和需求来源",
+  "mode": "standard",
+  "started_at": "2026-08-25T00:21:42.653788+00:00",
+  "finished_at": null,
+  "assumptions": [],
+  "provider_config": {
+    "primary": "search-cli",
+    "scholarly": null
+  },
+  "report_dir": "/Users/zhouyuexing/.openclaw/workspace/me-agent/outputs/boris-cherny-research-2026-08-25",
+  "artifact_paths": {
+    "sources": "sources.jsonl",
+    "evidence": "evidence.jsonl",
+    "claims": "claims.jsonl",
+    "report": "report.md"
+  },
+  "continuation": null
+}
