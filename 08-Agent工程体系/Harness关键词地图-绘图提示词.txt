@@ -1,0 +1,66 @@
+Use case: infographic-diagram.
+Create a polished, professional Chinese knowledge map as a single high-resolution landscape image, aspect ratio 3:2. Intended for long-term study and sharing. User requests Image 2. Flat editorial information design, warm ivory background, dark navy Chinese sans-serif typography, restrained teal and amber accents, thin crisp rules, spacious margins. No 3D, no robot, no stock art, no watermarks. Large legible Chinese labels, precise spelling. Main title at top left: "Harness 关键词地图". Subtitle: "12 个核心领域 · 从模型能力到可靠任务系统". Small top right version "v0.1".
+Main composition: twelve equally sized information cards in a 4-column by 3-row grid, read left-to-right, top-to-bottom numbered 01 through 12. Each card: large number, bold exact title, one prominent question and two short smaller keyword lines. Use subtle simple line icons if space allows. Do not use arrows between these cards: they are knowledge categories, not a sequence of execution. Do not omit any card. The 12 cards must contain EXACT text below:
+01 模型
+用哪个模型，怎样调用？
+模型选择 · Provider · 协议适配
+多模态 · 能力限制
+
+02 指令
+应该按照什么要求做事？
+系统提示词 · 项目规则
+角色定义 · 指令优先级
+
+03 消息
+怎样交换信息？
+用户消息 · 模型回复 · 工具结果
+事件 · 会话历史
+
+04 上下文
+这一轮实际看到什么？
+请求组装 · 信息筛选 · 按需加载
+结果裁剪 · 上下文压缩
+
+05 工具与扩展
+有哪些能力，怎样接入？
+文件读写 · Shell · Web · MCP
+Skills · 连接器 · 插件
+
+06 执行循环
+怎样根据反馈继续行动？
+Agent Loop · ReAct · 计划执行
+重规划 · 停止条件
+
+07 任务与编排
+复杂工作怎样组织？
+目标 · 计划 · Subagent
+Workflow · 并行与依赖
+
+08 调度
+何时运行，怎样唤醒？
+后台任务 · 异步任务 · 定时任务
+事件触发 · 完成唤醒 · 通知
+
+09 状态与恢复
+做到哪里，怎样继续？
+Session · 任务进度 · 持久化
+检查点 · 中断 · 重试 · 幂等
+
+10 记忆
+什么值得保存和复用？
+记忆写入 · 检索 · 排序
+更新 · 遗忘 · 来源与时效
+
+11 安全与权限
+什么能做，谁允许做？
+身份 · 授权 · 人工审批
+沙箱 · 凭证 · 提示注入防护
+
+12 验证与改进
+做成了吗，怎样变好？
+结果验收 · 全链路监控
+复盘 · 评测 · 回归
+
+Below grid one elegant full-width tinted ribbon with exact text: "贯穿所有领域：成本 · 延迟 · 资源预算".
+Bottom small clear note: "学习与检索地图，不等同于代码模块划分".
+Cards should feel like one coherent knowledge atlas. Prioritize clear text over ornament. This is a graphic knowledge map, not a screenshot of a spreadsheet. All 12 cards and full ribbon fit inside canvas.
