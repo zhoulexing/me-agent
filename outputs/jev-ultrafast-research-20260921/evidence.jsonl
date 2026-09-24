@@ -1,0 +1,12 @@
+{"source_id":"S2","locator":"L48-L148","evidence":"The runtime builds operation-specific target choices and sends operation plus all target heads in one System One request."}
+{"source_id":"S2","locator":"L151-L198","evidence":"A separate OpenAI-compatible helper generates JSON text only for fill operations."}
+{"source_id":"S3","locator":"L52-L165","evidence":"The loop predicts, consumes a decision once, executes, observes again, and terminates on DONE or BLOCKED."}
+{"source_id":"S4","locator":"L1-L107","evidence":"One browser-side evaluation extracts visible controls, text, stable node identities, guards, and bounded actions."}
+{"source_id":"S5","locator":"L88-L194","evidence":"Execution rechecks freshness, visibility, geometry and occlusion before dispatching CDP input."}
+{"source_id":"S7","locator":"L29-L33","evidence":"The documented MVP excludes frames, shadow roots, canvas, uploads, pop-ups, nested scrolling, and complex keyboard interactions."}
+{"source_id":"S8","locator":"L7-L32","evidence":"The matched six-run report records a 25 percent median reduction on one Flights task and explicitly rejects broad generalization."}
+{"source_id":"S10","locator":"L18-L38","evidence":"The Flights example verifies route, trip type, date and visible results independently of the model's DONE choice."}
+{"source_id":"S12","locator":"L21-L25","evidence":"TypeSafe documents many questions in one request and parallel evaluation with code selecting relevant answers."}
+{"source_id":"S13","locator":"L183-L212","evidence":"Choice is limited to caller-defined criteria and returns a full probability distribution."}
+{"source_id":"S14","locator":"L30-L39","evidence":"Jev 1.13 is text-only; non-text inputs must be preprocessed into text or structured state."}
+{"source_id":"S16","locator":"description","evidence":"A public issue reports omitted non-native autocomplete rows causing repeated fills until the action budget was exhausted."}

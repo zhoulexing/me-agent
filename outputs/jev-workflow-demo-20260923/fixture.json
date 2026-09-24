@@ -1,0 +1,34 @@
+{
+  "trigger": {
+    "goal": "分析近 7 天成交订单下降的原因；证据不足时继续核查，结论必须有独立验证。",
+    "initial_evidence": [
+      {
+        "source": "店铺指标",
+        "observation": "访客数较前 7 天增加 8%，成交订单下降 18%，整体转化率下降。"
+      }
+    ],
+    "node_results": {
+      "check_checkout": {
+        "source": "结算漏斗",
+        "observation": "支付页到支付成功的转化率明显下降；部分请求报告超时。"
+      },
+      "check_inventory": {
+        "source": "商品库存",
+        "observation": "主销商品有两款短暂缺货。"
+      },
+      "check_campaign": {
+        "source": "活动记录",
+        "observation": "本周没有重大活动或价格变动。"
+      },
+      "verify_payment": {
+        "source": "支付错误记录",
+        "observation": "与上一周期相比，支付超时错误显著增加，并与订单下降时段重合。"
+      }
+    }
+  },
+  "mock_jev": [
+    { "action": "check_checkout", "probability": 0.86, "confidence": 0.83, "sufficient": 0.11 },
+    { "action": "verify_payment", "probability": 0.91, "confidence": 0.88, "sufficient": 0.51 },
+    { "action": "finish", "probability": 0.93, "confidence": 0.90, "sufficient": 0.94 }
+  ]
+}

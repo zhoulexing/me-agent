@@ -1,0 +1,9 @@
+{"claim_id":"C1","claim":"jev-ultrafast is a complete Python browser-agent loop, not an MCP server.","support":["S1","S3","S11"],"status":"supported"}
+{"claim_id":"C2","claim":"Its primary speed technique is reducing each browser step to a bounded operation and target decision, not making browser I/O intrinsically faster.","support":["S2","S4","S5","S12"],"status":"supported"}
+{"claim_id":"C3","claim":"Operation and speculative operation-specific targets are evaluated in one TypeSafe request, after which code uses only the matching target head.","support":["S2","S9","S12"],"status":"supported"}
+{"claim_id":"C4","claim":"Free text generation remains necessary for TYPE_TEXT and is delegated to a separate small LLM.","support":["S1","S2","S7"],"status":"supported"}
+{"claim_id":"C5","claim":"The model cannot invent an executable selector or coordinate because execution resolves only code-owned observed node identities.","support":["S4","S5","S9"],"status":"supported"}
+{"claim_id":"C6","claim":"The current implementation records Jev confidence but does not gate execution on a confidence threshold.","support":["S2","S3"],"status":"supported"}
+{"claim_id":"C7","claim":"DONE is not proof of task completion; production use requires an independent verifier.","support":["S1","S7","S8","S10"],"status":"supported"}
+{"claim_id":"C8","claim":"The published speed result is narrow and insufficient to establish broad browser-agent reliability.","support":["S8","S16","S17","S18"],"status":"supported"}
+{"claim_id":"C9","claim":"For YBA, the pattern is reusable but the repository is not a drop-in replacement for Playwright MCP.","support":["S1","S3","S11"],"status":"synthesis"}

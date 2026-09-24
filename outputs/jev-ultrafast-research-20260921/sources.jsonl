@@ -1,0 +1,18 @@
+{"source_id":"S1","title":"jev-ultrafast README","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/README.md","type":"primary-repository"}
+{"source_id":"S2","title":"Dynamic operation and target model","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/jev_ultrafast/model.py","type":"primary-source-code"}
+{"source_id":"S3","title":"Browser agent loop","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/jev_ultrafast/agent.py","type":"primary-source-code"}
+{"source_id":"S4","title":"Atomic DOM snapshot","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/jev_ultrafast/snapshot.js","type":"primary-source-code"}
+{"source_id":"S5","title":"Browser Harness CDP executor","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/jev_ultrafast/browser.py","type":"primary-source-code"}
+{"source_id":"S6","title":"Decision instructions","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/jev_ultrafast/questions.py","type":"primary-source-code"}
+{"source_id":"S7","title":"Design notes","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/docs/design.md","type":"primary-design-document"}
+{"source_id":"S8","title":"Performance report","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/docs/performance.md","type":"primary-measurement"}
+{"source_id":"S9","title":"Offline contract tests","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/tests/test_agent.py","type":"primary-tests"}
+{"source_id":"S10","title":"Independent Flights verifier","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/examples/flights.py","type":"primary-example"}
+{"source_id":"S11","title":"Project dependencies","url":"https://github.com/browser-use/jev-ultrafast/blob/1231850a0bf1a0c0341fe408ef1668dbbfdfac46/pyproject.toml","type":"primary-build-metadata"}
+{"source_id":"S12","title":"TypeSafe speculative fan-out","url":"https://docs.typesafe.ai/patterns/fan-out","type":"official-documentation"}
+{"source_id":"S13","title":"TypeSafe API reference","url":"https://docs.typesafe.ai/api","type":"official-documentation"}
+{"source_id":"S14","title":"TypeSafe Jev models","url":"https://docs.typesafe.ai/models","type":"official-documentation"}
+{"source_id":"S15","title":"Introducing System One Models and Jev","url":"https://typesafe.ai/blog/introducing-system-one-models-and-jev","type":"vendor-technical-blog"}
+{"source_id":"S16","title":"Issue 23 missing non-native clickables","url":"https://github.com/browser-use/jev-ultrafast/issues/23","type":"public-issue-report"}
+{"source_id":"S17","title":"Issue 51 Windows background rendering","url":"https://github.com/browser-use/jev-ultrafast/issues/51","type":"public-issue-report"}
+{"source_id":"S18","title":"Issue 85 network latency measurement","url":"https://github.com/browser-use/jev-ultrafast/issues/85","type":"public-issue-report"}

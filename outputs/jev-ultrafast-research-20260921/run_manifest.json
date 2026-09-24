@@ -1,0 +1,17 @@
+{
+  "query": "jev-ultrafast具体是怎么做的",
+  "mode": "quick-source-audit",
+  "date": "2026-09-21",
+  "repository": "https://github.com/browser-use/jev-ultrafast",
+  "commit": "1231850a0bf1a0c0341fe408ef1668dbbfdfac46",
+  "scope": [
+    "browser observation and action-space construction",
+    "Jev request and speculative fan-out",
+    "text-generation handoff",
+    "CDP execution and freshness guards",
+    "performance evidence and current limitations",
+    "YBA applicability"
+  ],
+  "live_api_calls": false,
+  "offline_test_result": "31 passed"
+}

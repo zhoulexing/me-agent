@@ -26,8 +26,12 @@ venv
 .continue
 .kiro
 .skills-lock
-
 .baoyu-skills/
+.clawhub/
+.venv-video
+.workbuddy
+.vscode
+
 baoyu-skill-assets
 cover-image/
 post-to-wechat/
