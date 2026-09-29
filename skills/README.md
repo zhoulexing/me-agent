@@ -1,84 +1,25 @@
-# Skills 链接管理工具
+# Skills
 
-本目录包含用于将 skills 软链接到不同 agent，或移除对应软链接的工具脚本。
+本目录只放 Agent 的判断规则、工作流程、参考资料和输出模板。可执行代码统一维护在项目根目录 `cmd/`，由 `zlx-cli` 调用。
 
-## 支持的 Agent
+## 当前 Skills
 
-- **Claude Code** - `~/.claude/skills`
-- **Codex** - `~/.codex/skills`
-- **OpenClaw** - `~/.openclaw/skills`
+| Skill | 职责 |
+| --- | --- |
+| `zlx-note` | 本地资料归档、索引、回查与 Get 笔记同步判断 |
+| `zlx-self-media` | 自媒体选题、写作、标题与跨平台内容规划 |
+| `zlx-video-cut` | 口播视频剪辑、字幕校对与成片检查，调用 `zlx-cli video` |
+| `zlx-wechat-article` | 公众号文章排版、配图与草稿流程，调用 `zlx-cli wechat` |
+| `zlx-getnote` | Get 笔记保存、搜索和知识库管理，调用 `zlx-cli getnote` |
 
-## 使用方法
+普通文档读取直接使用 `zlx-cli doc read`。旧 Skill 的资料暂存于 `docs/archived-skills/`，用于核对迁移前的说明。
 
-### 基本用法
-
-```bash
-# 默认动作为 link，兼容旧用法
-# 链接到单个 agent
-./link-skill.sh <skill-name> claude
-
-# 链接到多个 agent（用逗号分隔）
-./link-skill.sh <skill-name> claude,codex
-
-# 链接到所有 agent
-./link-skill.sh <skill-name> all
-
-# 显式指定创建软链接
-./link-skill.sh link <skill-name> claude,codex
-
-# 移除软链接
-./link-skill.sh unlink <skill-name> codex
-```
-
-### 示例
+## 链接到 Agent
 
 ```bash
-# 将 zlx-note skill 链接到 Claude Code
-./link-skill.sh zlx-note claude
-
-# 将 zlx-note skill 链接到所有 agent
-./link-skill.sh zlx-note all
-
-# 将某个 skill 同时链接到 Codex 和 OpenClaw
-./link-skill.sh my-skill codex,openclaw
-
-# 显式创建到 Claude Code 和 Codex
-./link-skill.sh link zlx-note claude,codex
-
-# 从 Codex 移除 zlx-note 的软链接
-./link-skill.sh unlink zlx-note codex
+zlx-cli skill link zlx-note codex
+zlx-cli skill link zlx-note claude,openclaw
+zlx-cli skill unlink zlx-note codex
 ```
 
-### 查看帮助
-
-```bash
-./link-skill.sh
-# 或
-./link-skill.sh --help
-```
-
-## 脚本特性
-
-- ✓ 自动检测 skill 是否存在
-- ✓ 智能处理已存在的软链接
-- ✓ 支持覆盖已存在的链接
-- ✓ 支持移除指定 agent 下的软链接
-- ✓ 移除时只删除指向当前 skill 的软链接，避免误删其他目录
-- ✓ 彩色输出，清晰显示状态
-- ✓ 详细的错误提示
-
-## 注意事项
-
-1. `link` 会创建软链接，源文件保持在项目 `skills` 目录中
-2. 如果目标位置已存在软链接，脚本会自动检查并更新
-3. 如果目标位置存在普通文件或目录，执行 `link` 时会删除并替换为软链接
-4. `unlink` 只会删除“指向当前 skill 源目录”的软链接；如果目标是普通文件、目录，或软链接指向别处，会跳过
-5. 建议在修改 skill 后重新运行 `link` 以确保链接正确
-
-## 可用的 Skills
-
-运行以下命令查看当前可用的 skills：
-
-```bash
-./link-skill.sh
-```
+链接命令只处理软链接；目标位置已有普通文件、目录或指向其他位置的软链接时会跳过。命令源码位于 `cmd/business/skill/`。

@@ -18,6 +18,10 @@ __pycache__/
 # 输出目录（旧版）
 ark_outputs/
 .env
+/.config/
+.zlx-cli/
+.runtime-python
+.venv/
 temp/
 venv
 

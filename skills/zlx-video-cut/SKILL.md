@@ -26,7 +26,7 @@ Produce a finished portrait talking-head video while preserving the speaker's me
 Run:
 
 ```bash
-bash scripts/prepare_video.sh "/absolute/path/source.qt"
+zlx-cli video prepare "/absolute/path/source.qt"
 ```
 
 This creates the MP4 working copy, first frame, 16 kHz mono WAV, metadata, and standard edit directories. Read existing `<source-dir>/edit/project.md` before starting a new session.
@@ -36,12 +36,12 @@ This creates the MP4 working copy, first frame, 16 kHz mono WAV, metadata, and s
 Use large-v3 with a project glossary:
 
 ```bash
-bash scripts/transcribe_zh.sh \
+zlx-cli video transcribe \
   "/absolute/path/edit/transcripts/source-16k.wav" \
   "/absolute/path/edit/transcripts" \
   "Agent，AI，Get笔记，得到大脑，GetSeed录音卡，Codex，ChatGPT，Skill"
 
-python3 scripts/json_to_review.py \
+zlx-cli video review \
   --input "/absolute/path/edit/transcripts/whisper-large-v3.json" \
   --output "/absolute/path/edit/transcript-review.md"
 ```
@@ -65,7 +65,7 @@ Write `edit/edl.json` with source ranges, reasons, overlay windows, and expected
 Use timestamp headings in the form `## MM:SS.cc–MM:SS.cc`, then run:
 
 ```bash
-python3 scripts/build_subtitles.py \
+zlx-cli video subtitles \
   --transcript edit/transcript-review.md \
   --edl edit/edl.json \
   --output-json edit/captions.json \
@@ -105,8 +105,8 @@ Append the strategy, decisions, reasoning, QA findings, and outstanding work to 
 ## References and assets
 
 - Read [references/workflow.md](references/workflow.md) for failure modes and QA interpretation.
-- Use [scripts/prepare_video.sh](scripts/prepare_video.sh) for deterministic preparation.
-- Use [scripts/transcribe_zh.sh](scripts/transcribe_zh.sh) for production Chinese timing.
-- Use [scripts/json_to_review.py](scripts/json_to_review.py) to create the review surface.
-- Use [scripts/build_subtitles.py](scripts/build_subtitles.py) after manual transcript approval.
-
+- Read [references/editing-standard.md](references/editing-standard.md) when deciding the visual and audio treatment.
+- Use `zlx-cli video prepare` for deterministic preparation.
+- Use `zlx-cli video transcribe` for production Chinese timing.
+- Use `zlx-cli video review` to create the review surface.
+- Use `zlx-cli video subtitles` after manual transcript approval.

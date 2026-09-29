@@ -1,0 +1,15 @@
+{
+  "name": "zlx-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Commands for the me-agent workspace and connected platforms",
+  "bin": {
+    "zlx-cli": "cmd/cli.js"
+  },
+  "scripts": {
+    "test": "node --test cmd/tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
