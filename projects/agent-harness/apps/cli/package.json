@@ -1,0 +1,8 @@
+{
+  "name": "@agent-harness/cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "agent-harness": "./src/cli.js"
+  }
+}

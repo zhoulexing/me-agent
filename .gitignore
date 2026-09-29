@@ -1,4 +1,5 @@
 node_modules/
+.pnpm-store/
 
 # 生成的图片
 assets/

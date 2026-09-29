@@ -1,0 +1,11 @@
+{
+  "name": "agent-harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cli": "node apps/cli/src/cli.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

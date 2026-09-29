@@ -11,6 +11,8 @@
 
 本地 Git 克隆只包含源仓库**已提交**的文件，不包含原目录中的未跟踪研究笔记。`claude-code/` 和 `codex-harness/` 的 `origin` 指向各自的本机源仓库；另外两个项目的 `origin` 指向表中的 GitHub 仓库。
 
+自建工程：[Agent Harness](./agent-harness/README.md) 从最小 CLI 骨架开始，按课程逐步实现。
+
 ## 运行 Jev Ultrafast
 
 需要 Python 3.12+、`uv`、本机 Chrome，以及 TypeSafe 的 API key。需要向网页输入生成的文字时，还需要一个兼容 OpenAI API 的文本模型 key。
