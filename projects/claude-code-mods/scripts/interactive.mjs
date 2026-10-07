@@ -1,0 +1,11 @@
+import {spawn} from 'node:child_process';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const args=['--no-session-persistence','--plugin-dir',root+'/plugins/research-notebook','--plugin-dir',root+'/plugins/research-audit','--max-budget-usd','0.20','--max-turns','2','--permission-mode','default','--tools','Read,Agent','--strict-mcp-config','--mcp-config','{"mcpServers":{}}','--settings',JSON.stringify({pluginConfigs:{'research-notebook@inline':{options:{e1:true,e2:true,e3:true,e4:true,e5:true,e6:true,e7:true,e8:true}}}})];
+const child=spawn('claude',args,{cwd:root+'/workspace',stdio:'inherit'});
+const limit=setTimeout(()=>{console.error('\nBounded interactive demo: stopping after 120 seconds');child.kill('SIGTERM');},120000);
+const force=setTimeout(()=>child.kill('SIGKILL'),125000);
+child.on('error',error=>{clearTimeout(limit);clearTimeout(force);console.error('CLI could not start: '+error.code);process.exit(1);});
+child.on('exit',code=>{clearTimeout(limit);clearTimeout(force);process.exit(code??1);});
+process.on('SIGTERM',()=>child.kill('SIGTERM'));

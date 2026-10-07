@@ -1,0 +1,18 @@
+{
+  "name": "claude-code-mods-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent Claude Code mod experiments",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node scripts/check.mjs",
+    "demo": "node scripts/run.mjs all normal",
+    "live": "node scripts/live.mjs",
+    "new-mod": "node scripts/new-mod.mjs",
+    "interactive": "node scripts/interactive.mjs"
+  }
+}

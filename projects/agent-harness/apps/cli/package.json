@@ -4,5 +4,10 @@
   "type": "module",
   "bin": {
     "agent-harness": "./src/cli.js"
+  },
+  "dependencies": {
+    "@agent-harness/core": "workspace:*",
+    "@agent-harness/llm": "workspace:*",
+    "@agent-harness/session": "workspace:*"
   }
 }

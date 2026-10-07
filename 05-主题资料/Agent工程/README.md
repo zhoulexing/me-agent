@@ -5,5 +5,7 @@
 ## 课题
 
 - [Agent Harness 工程结构](./工程结构.md)：从零到一构建工程的目录、模块边界与实施顺序。
+- [第一讲：从一次任务看懂 Agent Harness](./第一讲-从一次任务看懂Agent-Harness.md)：真实 API 驱动的最小轮次与工具调用。
+- [Agent Harness 待研究](./TODO.md)：随手记录后续要研究的课题。
 
 其他课题待逐步补充。

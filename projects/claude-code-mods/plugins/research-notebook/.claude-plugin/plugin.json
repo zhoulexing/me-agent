@@ -1,0 +1,79 @@
+{
+  "name": "research-notebook",
+  "version": "0.1.0",
+  "description": "八个可组合的合成研究笔记实验",
+  "author": {
+    "name": "me-agent experiments"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "e1": {
+      "type": "boolean",
+      "title": "实验 1",
+      "description": "提示词/上下文",
+      "default": false
+    },
+    "e2": {
+      "type": "boolean",
+      "title": "实验 2",
+      "description": "工具/权限/结果",
+      "default": false
+    },
+    "e3": {
+      "type": "boolean",
+      "title": "实验 3",
+      "description": "模型step/取消/分类",
+      "default": false
+    },
+    "e4": {
+      "type": "boolean",
+      "title": "实验 4",
+      "description": "会话/子代理",
+      "default": false
+    },
+    "e5": {
+      "type": "boolean",
+      "title": "实验 5",
+      "description": "命令/工具/配置",
+      "default": false
+    },
+    "e6": {
+      "type": "boolean",
+      "title": "实验 6",
+      "description": "终端UI",
+      "default": false
+    },
+    "e7": {
+      "type": "boolean",
+      "title": "实验 7",
+      "description": "状态/索引/定时/只读IO",
+      "default": false
+    },
+    "e8": {
+      "type": "boolean",
+      "title": "实验 8",
+      "description": "加工中间件",
+      "default": false
+    },
+    "classify": {
+      "type": "boolean",
+      "title": "可选资料分类",
+      "description": "仅在 e3 下对 F1 做一次 haiku 分类",
+      "default": false
+    },
+    "readOnlyIO": {
+      "type": "boolean",
+      "title": "可选只读进程",
+      "description": "仅在 e7 下运行固定 wc -c，无网络",
+      "default": false
+    },
+    "modelTimeoutMs": {
+      "type": "number",
+      "title": "模型调用上限毫秒",
+      "description": "分类调用超时；1000至90000毫秒，不自动重试",
+      "default": 15000,
+      "min": 1000,
+      "max": 90000
+    }
+  }
+}

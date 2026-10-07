@@ -1,0 +1,1 @@
+{"name":"research-audit","version":"0.1.0","description":"独立的合成实验审计中间件，不记录输入正文","author":{"name":"me-agent experiments"},"dependencies":["research-notebook"],"userConfig":{"refuseProcess":{"type":"boolean","title":"拒绝进程能力插件","description":"教学加载审计；普通用户层不等于管理员强制策略","default":false}}}

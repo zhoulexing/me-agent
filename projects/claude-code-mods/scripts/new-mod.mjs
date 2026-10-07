@@ -1,0 +1,12 @@
+import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const name=process.argv[2];
+if(!name||!/^[a-z][a-z0-9-]{1,40}$/.test(name)||name.startsWith('claude-'))throw new Error('Use an independent kebab-case mod name');
+const dir=root+'/plugins/'+name;if(existsSync(dir))throw new Error('Refusing overwrite');
+mkdirSync(dir+'/.claude-plugin',{recursive:true});mkdirSync(dir+'/hooks');
+writeFileSync(dir+'/.claude-plugin/plugin.json',JSON.stringify({name,version:'0.1.0',description:'Independent mod: '+name,author:{name:'me-agent experiments'}},null,2)+'\n');
+writeFileSync(dir+'/hooks/hooks.json','{"modules":["./register.ts"]}\n');
+writeFileSync(dir+'/hooks/register.ts',`import type {Register} from 'claude-code';\nexport const register: Register = on => {\n  on('session.start', async ($,e,next) => next(e));\n};\n`);
+console.log('Created '+dir+'; npm run check discovers it automatically.');

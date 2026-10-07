@@ -1,0 +1,9 @@
+node_modules/
+workspace/*
+!workspace/.gitkeep
+!workspace/CLAUDE.md
+outputs/
+plugins/*/.claude-plugin/types/
+.env*
+*.log
+.DS_Store

@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 
-const usage = `Agent Harness 工程骨架
+import { parseArgs, usage } from './args.js';
+import { createHarness } from './create-harness.js';
+import { runInteractive } from './interactive.js';
+import { runSingle } from './single.js';
 
-用法：agent-harness --help
-
-后续课程将逐步加入 run 和 server 命令。\n`;
-
-const args = process.argv.slice(2);
-
-if (args.length === 0 || (args.length === 1 && ['--help', '-h'].includes(args[0]))) {
-  process.stdout.write(usage);
-} else {
-  process.stderr.write(`未知命令：${args.join(' ')}\n`);
-  process.exitCode = 2;
+try {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.mode === 'help') process.stdout.write(usage);
+  else {
+    const harness = createHarness({ protocol: args.protocol });
+    if (args.mode === 'interactive') await runInteractive({ harness, sessionId: args.sessionId });
+    else process.exitCode = await runSingle({ harness, ...args });
+  }
+} catch (error) {
+  process.stderr.write(`运行失败：${error.message}\n`);
+  process.exitCode = 1;
 }
