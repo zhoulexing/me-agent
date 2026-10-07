@@ -51,6 +51,19 @@ zlx-cli record add --title "<标题>" --type "<类型>" --tags "标签1,标签2"
 
 ## Get 笔记同步
 
+### Get 到本地的原文同步
+
+用户已经授权每日同步时，调用 `zlx-cli record sync --source all`，不要临时编写摘要、选题或直连 API。完整规则见 [source-sync.md](references/source-sync.md)。同步范围、时区和来源由项目 `.config/source-sync.json` 决定。
+
+```bash
+zlx-cli record sync --source getnote --dry-run
+zlx-cli record sync --source all
+```
+
+方向固定为 Get 笔记 → 本地信息记录。CLI 保存原文、完整响应与可下载附件，按源创建日期更新 `03-信息记录/YYYY-MM-DD.md` 和索引；进度保存在 `.zlx-cli/source-sync/`。无新增或修改时不改信息记录，不生成分析、选题或空日期文件。CLI 失败或提示本地冲突时报告实际原因，不覆盖手工内容，不清除进度和待恢复事务，也不把失败当成无数据。
+
+### 本地到 Get 的既有映射
+
 只在用户要求时调用 `zlx-getnote` Skill 与 `zlx-cli getnote` 命令。先明确同步方向、目标笔记和覆盖范围；不得根据本地目录名自动猜测 Get 知识库。
 
 - `01-基本信息/` 的既有知识库为 `基本信息`。

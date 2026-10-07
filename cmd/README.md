@@ -42,6 +42,8 @@ npm test
 
 ```bash
 zlx-cli record search "寄件"
+zlx-cli record sync --source getnote --dry-run
+zlx-cli record sync --source all
 zlx-cli record add --title "寄件事项" --type 待办 --tags "生活,寄件" \
   --summary "明天寄出包裹" --content-file /tmp/record.txt --dry-run
 zlx-cli doc read README.md --format markdown
@@ -59,3 +61,11 @@ zlx-cli getnote request GET '/open/api/v1/resource/knowledge/list?page=1'
 Get 笔记请求体使用 UTF-8 JSON 文件，避免大整数笔记 ID 被 JavaScript 重新序列化。会修改 Get 笔记的请求先用 `--dry-run` 检查，再在用户授权后使用 `--execute`。公众号草稿也先用 `--dry-run` 预览；创建或更新草稿是单独的外部写入。本文命令不会自行发起远端同步或发布。
 
 `wechat read-published` 只调用当前配置账号的官方已发布列表与详情接口，不会抓取目标 URL。短链接与接口 URL 不一致时，`--title` 可用于定位候选；输出的 `matchedBy: title-only` 不表示已验证两个链接相同。接口可能受账号权限和出口 IP 白名单限制。
+
+## 来源原文同步
+
+`record sync` 单向读取来源，按创建日期写入 `03-信息记录`，同步维护索引。配置为 `.config/source-sync.json`：`version: 1`、`timezone: "Asia/Shanghai"`、`startDate: "2026-10-07"`、`sources: ["getnote"]`。首次范围固定从配置日期开始；成功进度保存后沿用该起点。不会修改远端笔记或启用任何定时器。
+
+正文、网页原文与录音转写分别保留，不新增分析或选题。完整响应与附件保存在 `outputs/信息同步/<来源>/<ID>/<版本指纹>/`；进度、运行锁与中断恢复暂存位于 `.zlx-cli/source-sync/`。无新增或修改时不改信息记录。重复执行不追加副本，源头修改只更新自己的来源区块并保留旧快照，本地手写内容保留。若来源区块被手改则停止并报告冲突。
+
+平台代码位于 `cmd/platforms/getnote/source.js`；业务写入、索引与恢复位于 `cmd/business/source-sync.js`。当前只实现 Get，新增来源应提供列表、详情、附件读取和身份标识，并明确配置范围。更多规则见 `skills/zlx-note/references/source-sync.md`。

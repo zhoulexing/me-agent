@@ -1,0 +1,274 @@
+{
+  "pages": 17,
+  "listed": 327,
+  "reported_total": 327,
+  "today_count": 4,
+  "selected": [
+    {
+      "id": "1923450193118948464",
+      "created_at": "2026-10-07 13:56:26",
+      "title": "李希贵《下一代学校》：什么才是真正的\"见世面\"？",
+      "note_type": "link",
+      "fields": [
+        "id",
+        "note_id",
+        "title",
+        "content",
+        "ref_content",
+        "note_type",
+        "source",
+        "entry_type",
+        "tags",
+        "children_count",
+        "children_ids",
+        "topics",
+        "is_child_note",
+        "attachments",
+        "web_page",
+        "chapter_timeline",
+        "meeting_todos",
+        "share_id",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "body_chars": 741,
+      "audio_keys": [],
+      "web_keys": [
+        "url",
+        "content"
+      ],
+      "attachments": 1
+    },
+    {
+      "id": "1923450333779024864",
+      "created_at": "2026-10-07 13:58:37",
+      "title": "见世面是懂兼容",
+      "note_type": "plain_text",
+      "fields": [
+        "id",
+        "note_id",
+        "title",
+        "content",
+        "ref_content",
+        "note_type",
+        "source",
+        "entry_type",
+        "tags",
+        "children_count",
+        "children_ids",
+        "topics",
+        "is_child_note",
+        "attachments",
+        "chapter_timeline",
+        "meeting_todos",
+        "share_id",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "body_chars": 802,
+      "audio_keys": [],
+      "web_keys": [],
+      "attachments": 0
+    },
+    {
+      "id": "1923470686556347360",
+      "created_at": "2026-10-07 19:14:32",
+      "title": "办公与个人Agent谁更有戏",
+      "note_type": "plain_text",
+      "fields": [
+        "id",
+        "note_id",
+        "title",
+        "content",
+        "ref_content",
+        "note_type",
+        "source",
+        "entry_type",
+        "tags",
+        "children_count",
+        "children_ids",
+        "topics",
+        "is_child_note",
+        "attachments",
+        "chapter_timeline",
+        "meeting_todos",
+        "share_id",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "body_chars": 946,
+      "audio_keys": [],
+      "web_keys": [],
+      "attachments": 0
+    },
+    {
+      "id": "1923470895935554712",
+      "created_at": "2026-10-07 19:17:47",
+      "title": "Agent Swarm 五种常见协作模式",
+      "note_type": "plain_text",
+      "fields": [
+        "id",
+        "note_id",
+        "title",
+        "content",
+        "ref_content",
+        "note_type",
+        "source",
+        "entry_type",
+        "tags",
+        "children_count",
+        "children_ids",
+        "topics",
+        "is_child_note",
+        "attachments",
+        "chapter_timeline",
+        "meeting_todos",
+        "share_id",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "body_chars": 2333,
+      "audio_keys": [],
+      "web_keys": [],
+      "attachments": 0
+    },
+    {
+      "id": "1923240552543902688",
+      "created_at": "2026-10-05 07:42:23",
+      "title": "AI时代的微决策训练：从《AI未来进行式》得到的启发",
+      "note_type": "audio",
+      "fields": [
+        "id",
+        "note_id",
+        "title",
+        "content",
+        "ref_content",
+        "note_type",
+        "source",
+        "entry_type",
+        "tags",
+        "children_count",
+        "children_ids",
+        "topics",
+        "is_child_note",
+        "attachments",
+        "audio",
+        "chapter_timeline",
+        "meeting_todos",
+        "share_id",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "body_chars": 384,
+      "audio_keys": [
+        "original",
+        "sentences"
+      ],
+      "web_keys": [],
+      "attachments": 1
+    }
+  ],
+  "preview_generated_at": "2026-10-07T22:09:43+08:00",
+  "raw_checks": [
+    {
+      "note_id": "1923450193118948464",
+      "path": "原始数据/1923450193118948464.json",
+      "sha256": "b7c5076d7a46ba1b911d50a6808ff669e9e32f462ce90bb0e279ed94d1a509c2"
+    },
+    {
+      "note_id": "1923450333779024864",
+      "path": "原始数据/1923450333779024864.json",
+      "sha256": "4291326fb93f2fcabf15ab0816af668409d754ed8a5cdb68c76aff507eaa5cd5"
+    },
+    {
+      "note_id": "1923470686556347360",
+      "path": "原始数据/1923470686556347360.json",
+      "sha256": "158a8d529b827d4e9c57b2a12e9dc8600e3f3136f9b5af340fac7392a3f05330"
+    },
+    {
+      "note_id": "1923470895935554712",
+      "path": "原始数据/1923470895935554712.json",
+      "sha256": "ca75d357ed36ddb68b730fc75400ad2e80e9a8065db5a4ae5590d1c912860e2f"
+    },
+    {
+      "note_id": "1923240552543902688",
+      "path": "原始数据/1923240552543902688.json",
+      "sha256": "c088c08ae4a0e985cfe0dd3a48b88ae8ab8a0a1d39bcf2f17c0ef494ee650b05"
+    }
+  ],
+  "field_checks": [
+    {
+      "note_id": "1923450193118948464",
+      "date": "2026-10-07",
+      "field": "content",
+      "chars": 741,
+      "sha256": "7c4c6892b775e0d0de5318185b982bb2bdba0c0c0d6ba1e5962bea2f2ea2902f"
+    },
+    {
+      "note_id": "1923450193118948464",
+      "date": "2026-10-07",
+      "field": "web_page.content",
+      "chars": 801,
+      "sha256": "79cb864ef415a7902a607780f741a3124e46f82a50566a2444943a2f41598af9"
+    },
+    {
+      "note_id": "1923450333779024864",
+      "date": "2026-10-07",
+      "field": "content",
+      "chars": 802,
+      "sha256": "2173d3a08791f0c8a22ba20124689ea0288975486e53f32439e148e4cc09d97f"
+    },
+    {
+      "note_id": "1923470686556347360",
+      "date": "2026-10-07",
+      "field": "content",
+      "chars": 946,
+      "sha256": "47dfd467dc87066d0ce52d13fdf4e5f00d3ea12bf9d68f2b3dec5132e6137971"
+    },
+    {
+      "note_id": "1923470895935554712",
+      "date": "2026-10-07",
+      "field": "content",
+      "chars": 2333,
+      "sha256": "1167d039a605d207efa0b3fb7f1b9fc1fbf25e11645f93ab67982dfbe41b1dad"
+    },
+    {
+      "note_id": "1923240552543902688",
+      "date": "2026-10-05",
+      "field": "content",
+      "chars": 384,
+      "sha256": "ea5fe5a0780a21c45ee11d43072e8be6707bcc712fe8ae9328316ee1a3504057"
+    },
+    {
+      "note_id": "1923240552543902688",
+      "date": "2026-10-05",
+      "field": "audio.original",
+      "chars": 473,
+      "sha256": "744f455362cc8481d9fcce50ee7e9e100267d5c1a23c773dc72539e7b994e135"
+    }
+  ],
+  "asset_checks": [
+    {
+      "note_id": "1923240552543902688",
+      "path": "附件/1923240552543902688-audio-1.mp3",
+      "bytes": 359540,
+      "sha256": "8a8c3de7d525b8f94d3953f206aa7f2a8125ad8ff45cc7ac3996b30c4b720049"
+    }
+  ],
+  "verified": {
+    "raw_responses_byte_equal": true,
+    "text_fields_char_equal": true,
+    "note_blocks_unique": true,
+    "production_files_unchanged": true,
+    "all_list_pages_read": true
+  },
+  "scope": {
+    "2026-10-07": "all 4 listed notes",
+    "2026-10-05": "one audio sample, not whole day"
+  }
+}

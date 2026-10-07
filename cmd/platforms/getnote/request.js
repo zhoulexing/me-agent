@@ -6,6 +6,39 @@ const { headers } = require("../../auth/getnote");
 const ORIGIN = "https://openapi.biji.com";
 const PREFIX = "/open/api/v1/resource/";
 
+function responseError(status, text) {
+  let data;
+  try { data = JSON.parse(text); } catch { data = {}; }
+  const reason = data.error?.reason;
+  const safeReason = ["qps_global", "qps_bucket", "quota_day", "quota_month", "not_member"].includes(reason) ? reason : "";
+  const error = new Error(`Get 笔记${status ? ` HTTP ${status}` : "返回错误"}${safeReason ? `（${safeReason}）` : ""}`);
+  error.status = status;
+  error.reason = safeReason;
+  error.code = data.error?.code;
+  error.retryAfter = Number(data.error?.rate_limit?.retry_after ?? data.rate_limit?.retry_after) || undefined;
+  return error;
+}
+
+async function requestResource(method, rawPath, body) {
+  const url = new URL(rawPath, ORIGIN);
+  if (!rawPath.startsWith(PREFIX) || url.origin !== ORIGIN || !url.pathname.startsWith(PREFIX))
+    throw new Error("不允许访问此地址");
+  const response = await fetch(url, {
+    method,
+    headers: { ...headers(), ...(body ? { "Content-Type": "application/json" } : {}) },
+    body,
+    signal: AbortSignal.timeout(30_000),
+  });
+  const text = await response.text();
+  if (!response.ok) {
+    const error = responseError(response.status, text);
+    const header = response.headers.get("retry-after");
+    if (header) error.retryAfter = Number(header) || Math.max(0, (Date.parse(header) - Date.now()) / 1000) || error.retryAfter;
+    throw error;
+  }
+  return text;
+}
+
 function usage() {
   return `用法: zlx-cli getnote request GET|POST /open/api/v1/resource/... [--body-file <JSON文件>] [--dry-run|--execute]
 示例:
@@ -50,17 +83,7 @@ async function main(argv) {
     console.log(JSON.stringify({ method, url: url.toString(), body: body || null, network: false, write: isWrite }, null, 2));
     return 0;
   }
-  const response = await fetch(url, {
-    method,
-    headers: {
-      ...headers(),
-      ...(body ? { "Content-Type": "application/json" } : {}),
-    },
-    body,
-    signal: AbortSignal.timeout(30_000),
-  });
-  const text = await response.text();
-  if (!response.ok) throw new Error(`Get 笔记 HTTP ${response.status}: ${text.slice(0, 500)}`);
+  const text = await requestResource(method, rawPath, body);
   try {
     if (JSON.parse(text).success === false) {
       console.error(text);
@@ -73,7 +96,10 @@ async function main(argv) {
   return 0;
 }
 
-main(process.argv.slice(2)).then((code) => { process.exitCode = code; }).catch((error) => {
-  console.error(error.message || String(error));
-  process.exitCode = 1;
-});
+module.exports = { readResource: (path) => requestResource("GET", path), responseError };
+if (require.main === module) {
+  main(process.argv.slice(2)).then((code) => { process.exitCode = code; }).catch((error) => {
+    console.error(error.message || String(error));
+    process.exitCode = 1;
+  });
+}

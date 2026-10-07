@@ -7,6 +7,8 @@ description: 在 Get 笔记中保存、搜索、查看或管理笔记与知识�
 
 本 Skill 负责选择操作、核对目标和解释结果。所有 Get 笔记 API 调用经由 `zlx-cli getnote`；不要从 Skill 目录执行脚本，也不要直接拼接 HTTP 请求。`zlx-cli auth status` 可检查项目 `.config/getnote.json` 是否配置 API Key。
 
+Get → 本地信息记录的定期原文同步由 `zlx-note` 与 `zlx-cli record sync` 负责；该业务命令复用本平台只读接口，不产生远端写入。不要用摘要或选题代替同步原文。
+
 ## 按任务读取参考资料
 
 | 任务 | 参考资料 |

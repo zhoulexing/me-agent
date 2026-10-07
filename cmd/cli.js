@@ -12,7 +12,7 @@ const HELP = `zlx-cli - me-agent 统一命令入口
 用法: zlx-cli <领域> <操作> [参数]
 
 本地业务:
-  record add|search          写入或检索每日记录
+  record add|search|sync     写入、检索每日记录或原文同步
   doc read|setup             读取文档或准备文档运行环境
   video prepare|transcribe|review|subtitles
   wechat cover|compose       准备公众号封面与正文 HTML
@@ -52,6 +52,8 @@ function pythonWith(moduleName) {
 }
 
 function main(argv) {
+  if (argv[0] === "record" && argv[1] === "sync")
+    return run(process.execPath, "cmd/business/source-sync.js", argv.slice(2));
   if (argv[0] === "wechat" && argv[1] === "read-published")
     return run(process.execPath, "cmd/platforms/wechat/read-published-article.mjs", argv.slice(2));
   if (!argv.length || argv.includes("--help") || argv.includes("-h") || argv[0] === "help") {
