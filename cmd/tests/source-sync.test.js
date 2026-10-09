@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join, resolve } = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { createHash } = require("node:crypto");
 const { syncSource, sourceDate } = require("../business/source-sync");
 const { parseResponse } = require("../platforms/getnote/source");
 
@@ -41,7 +42,7 @@ function tree(root, relative) {
   return result;
 }
 
-test("sync keeps original fields, same-title identities, raw snapshots and manual content; rerun is a no-op", async (t) => {
+test("sync displays only metadata and exact Get content, retains identities and manual content; rerun is a no-op", async (t) => {
   const root = setup(t), notes = [note(), note("1923470895935554713", "第二条原文")];
   notes[0].audio = { original: "微修车，错字保留。\n", transcript: "另一份转写。" };
   notes[0].web_page = { url: "https://example.com/article", content: "网页\\n\\n原文", excerpt: "源摘要" };
@@ -53,8 +54,11 @@ test("sync keeps original fields, same-title identities, raw snapshots and manua
   const saved = read(root, "03-信息记录/2026-10-07.md");
   assert.ok(saved.startsWith(manual));
   assert.ok(saved.includes(notes[0].content));
-  assert.ok(saved.includes(notes[0].audio.original));
-  assert.ok(saved.includes(notes[0].web_page.content));
+  assert.ok(!saved.includes(notes[0].audio.original));
+  assert.ok(!saved.includes(notes[0].web_page.content));
+  assert.ok(!saved.includes("原始响应"));
+  assert.ok(!saved.includes("来源附件"));
+  assert.match(saved, /源网页链接：\[https:\/\/example.com\/article\]\(https:\/\/example.com\/article\)/);
   assert.match(saved, /20261007-01 同名笔记/);
   assert.match(saved, /20261007-02 同名笔记/);
   assert.ok(read(root, "03-信息记录/索引.md").includes(oldIndex.trimEnd()));
@@ -94,7 +98,7 @@ test("empty source changes no information records, and first-run history is excl
   assert.equal(fs.existsSync(join(root, "outputs")), false);
 });
 
-test("detail or attachment failure commits neither partial records nor progress", async (t) => {
+test("detail failure commits neither partial records nor progress", async (t) => {
   const root = setup(t), before = tree(root, "03-信息记录"), notes = [note(), note("1923470895935554713")];
   const broken = source(notes);
   const detail = broken.detail;
@@ -102,11 +106,6 @@ test("detail or attachment failure commits neither partial records nor progress"
   await assert.rejects(run(root, broken), /detail failed/);
   assert.deepEqual(tree(root, "03-信息记录"), before);
   assert.equal(fs.existsSync(join(root, ".zlx-cli/source-sync/getnote.json")), false);
-  notes[0].attachments = [{ type: "audio", url: "https://example.com/source.mp3" }];
-  const brokenAsset = source(notes);
-  brokenAsset.asset = async () => { throw new Error("asset failed"); };
-  await assert.rejects(run(root, brokenAsset), /asset failed/);
-  assert.deepEqual(tree(root, "03-信息记录"), before);
   assert.equal(fs.existsSync(join(root, "outputs")), false);
 });
 
@@ -162,17 +161,74 @@ test("dry-run reads details but downloads no attachments and writes no source ar
   assert.equal(fs.existsSync(join(root, ".zlx-cli/source-sync/getnote.json")), false);
 });
 
-test("attachment files are archived; signed URL refreshes alone do not update notes", async (t) => {
+test("attachments are not downloaded or displayed; signed URL refreshes alone do not update notes", async (t) => {
   const root = setup(t), notes = [note()], adapter = source(notes);
   notes[0].attachments = [{ type: "audio", url: "https://example.com/original.mp3?Expires=1&Signature=first" }];
+  notes[0].content += "\n![原始图片](https://example.com/image.png)\n";
+  adapter.asset = async () => { throw new Error("must not download attachments"); };
   await run(root, adapter);
   const state = JSON.parse(read(root, ".zlx-cli/source-sync/getnote.json"));
-  assert.equal(read(root, state.notes[notes[0].note_id].snapshot + "/attachment-1.mp3"), "original-attachment-bytes");
+  assert.deepEqual(fs.readdirSync(join(root, state.notes[notes[0].note_id].snapshot)).sort(), ["manifest.json", "raw.json"]);
+  assert.ok(read(root, "03-信息记录/2026-10-07.md").includes(notes[0].content));
   const before = tree(root, "03-信息记录"), snapshots = tree(root, "outputs");
   notes[0].attachments[0].url = "https://example.com/original.mp3?Expires=2&Signature=second";
   assert.equal((await run(root, adapter)).status, "skipped");
   assert.deepEqual(tree(root, "03-信息记录"), before);
   assert.deepEqual(tree(root, "outputs"), snapshots);
+});
+
+test("legacy layout migrates unchanged older notes once, retaining archives and manual notes", async (t) => {
+  const root = setup(t), notes = [note()], adapter = source(notes);
+  await run(root, adapter);
+  const statePath = join(root, ".zlx-cli/source-sync/getnote.json"), state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  const prior = state.notes[notes[0].note_id], datePath = join(root, "03-信息记录/2026-10-07.md");
+  const start = `<!-- SOURCE_SYNC getnote ${notes[0].note_id} NOTE START -->`;
+  const end = `<!-- SOURCE_SYNC getnote ${notes[0].note_id} NOTE END -->`;
+  let saved = fs.readFileSync(datePath, "utf8").replace(end, `### Get 返回的网页原文\n\n旧版额外网页文本\n- 原始响应：旧链接\n\n${end}`);
+  fs.writeFileSync(datePath, saved + "\n区块外用户备注。\n");
+  const legacy = saved.slice(saved.indexOf(start), saved.indexOf(end) + end.length);
+  prior.blockHash = createHash("sha256").update(legacy).digest("hex");
+  delete prior.renderVersion;
+  fs.writeFileSync(statePath, JSON.stringify(state));
+  const archives = tree(root, "outputs");
+  const migrated = await run(root, adapter, { now: new Date("2026-10-20T00:00:00Z") });
+  assert.equal(migrated.updated, 1);
+  assert.equal(migrated.detailsRead, 1);
+  saved = read(root, "03-信息记录/2026-10-07.md");
+  assert.ok(!saved.includes("旧版额外网页文本"));
+  assert.ok(!saved.includes("原始响应"));
+  assert.ok(saved.includes(notes[0].content));
+  assert.ok(saved.includes("区块外用户备注。"));
+  assert.deepEqual(tree(root, "outputs"), archives);
+  assert.equal((await run(root, adapter, { now: new Date("2026-10-20T00:00:00Z") })).status, "skipped");
+});
+
+test("empty Get content never substitutes transcript or webpage text", async (t) => {
+  const root = setup(t), n = note(undefined, "");
+  n.audio = { original: "不使用转写作为正文" };
+  n.web_page = { content: "不使用网页原文作为正文" };
+  await run(root, source([n]));
+  const saved = read(root, "03-信息记录/2026-10-07.md"), index = read(root, "03-信息记录/索引.md");
+  for (const text of [n.audio.original, n.web_page.content]) {
+    assert.ok(!saved.includes(text));
+    assert.ok(!index.includes(text));
+  }
+});
+
+test("changes to hidden source fields do not rewrite records or archive extra versions", async (t) => {
+  const root = setup(t), notes = [note()], adapter = source(notes);
+  notes[0].web_page = { url: "https://example.com/article", content: "网页内容第一版" };
+  await run(root, adapter);
+  const records = tree(root, "03-信息记录"), archives = tree(root, "outputs");
+  notes[0].web_page.content = "网页内容第二版";
+  notes[0].audio = { original: "新转写", transcript: "另一转写" };
+  notes[0].ref_content = "新引用";
+  notes[0].attachments = [{ type: "image", url: "https://example.com/image.png?token=changed" }];
+  assert.equal((await run(root, adapter)).status, "skipped");
+  assert.deepEqual(tree(root, "03-信息记录"), records);
+  assert.deepEqual(tree(root, "outputs"), archives);
+  notes[0].web_page.url = "https://example.com/changed-article";
+  assert.equal((await run(root, adapter)).updated, 1);
 });
 
 test("new month/date sections remain descending and created-date changes relocate the owned block", async (t) => {

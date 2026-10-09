@@ -6,6 +6,7 @@ const { createHash, randomUUID } = require("node:crypto");
 const { createGetnoteSource } = require("../platforms/getnote/source");
 
 const ROOT = path.resolve(__dirname, "../..");
+const RENDER_VERSION = 2;
 const INDEX_HEADER = "# 信息记录索引\n\n按日期倒序。索引用于检索，日期文件保存原文。\n";
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const read = (file) => fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
@@ -61,7 +62,7 @@ function replace(text, block, value) {
   return text.slice(0, block.start) + value + text.slice(block.end);
 }
 
-function renderNote(source, note, sequence, snapshot, assets) {
+function renderNote(source, note, sequence) {
   const id = note.note_id, date = sourceDate(note.created_at);
   const title = note.title || "源标题为空";
   const tags = (note.tags || []).map((tag) => `${tag.name}（${tag.type ?? ""}）`).join("、") || "[]";
@@ -70,29 +71,17 @@ function renderNote(source, note, sequence, snapshot, assets) {
     ["源更新时间", note.updated_at], ["源版本", note.version], ["源标签", tags], ["源知识库", JSON.stringify(note.topics ?? [])]];
   let body = `## ${date.replaceAll("-", "")}-${String(sequence).padStart(2, "0")} ${title}\n\n`;
   body += metadata.map(([label, value]) => `- ${label}：${value ?? "接口未提供"}`).join("\n");
-  body += `\n- 原始响应：[完整 JSON](../${snapshot}/raw.json)\n`;
-  if (note.web_page?.url) body += `- 源网页链接：${note.web_page.url}\n`;
-  const fields = [["content", "Get 正文", note.content], ["ref_content", "Get 引用内容", note.ref_content],
-    ["audio.original", "录音原始转写", note.audio?.original], ["audio.transcript", "录音转写 transcript", note.audio?.transcript],
-    ["web_page.excerpt", "来源已有网页摘要", note.web_page?.excerpt], ["web_page.content", "Get 返回的网页原文", note.web_page?.content]];
-  for (const [key, label, value] of fields) {
-    if (value === null || value === undefined || value === "") continue;
-    if (typeof value !== "string") throw new Error(`源文本字段类型变化：${key}`);
-    body += `\n### ${label}\n\n${wrap(source, id, key, value)}\n`;
-  }
-  if (note.attachments?.length || assets.length) {
-    body += "\n### 来源附件\n\n";
-    for (const [index, attachment] of (note.attachments || []).entries()) {
-      body += `- 附件 ${index + 1}，源类型：${attachment.type}；源标题：${attachment.title || "源标题为空"}。\n`;
-      if (attachment.type === "link") body += `  原始链接：${attachment.url}\n`;
-    }
-    for (const asset of assets) body += `- 本地附件副本：[${asset.label}](../${snapshot}/${asset.file})。原地址与元数据保存在完整 JSON 中。\n`;
+  body += "\n";
+  if (note.web_page?.url) body += `- 源网页链接：[${note.web_page.url}](${note.web_page.url})\n`;
+  if (note.content !== null && note.content !== undefined && note.content !== "") {
+    if (typeof note.content !== "string") throw new Error("源文本字段类型变化：content");
+    body += `\n### Get 正文\n\n${wrap(source, id, "content", note.content)}\n`;
   }
   return wrap(source, id, "NOTE", body);
 }
 
 function indexEntry(note) {
-  let excerpt = note.content || note.audio?.original || "";
+  let excerpt = note.content || "";
   excerpt = excerpt.replace(/^\s*(?:#{1,6}|>)\s*/gm, "").replaceAll("**", "").replaceAll("`", "").replace(/\s+/g, " ");
   const chars = [...excerpt];
   excerpt = chars.length > 60 ? chars.slice(0, 59).join("") + "…" : excerpt;
@@ -184,25 +173,6 @@ function acquire(runtime) {
   return () => fs.unlinkSync(lock);
 }
 
-function assetCandidates(note) {
-  const candidates = new Map();
-  function add(url, label, type) {
-    if (typeof url !== "string" || !url) throw new Error("源附件缺少下载地址");
-    if (!candidates.has(url)) candidates.set(url, { url, label, type });
-  }
-  for (const [position, attachment] of (note.attachments || []).entries()) {
-    if (attachment.type === "link") continue;
-    add(attachment.original_url || attachment.url, attachment.title || `附件 ${position + 1}（${attachment.type}）`, attachment.type);
-  }
-  if (note.audio?.play_url && ![...candidates.values()].some((asset) => asset.type === "audio")) add(note.audio.play_url, "原始音频", "audio");
-  for (const text of [note.content, note.ref_content, note.web_page?.content]) {
-    if (typeof text !== "string") continue;
-    for (const match of text.matchAll(/!\[[^\]]*\]\((https:\/\/[^\s)]+)(?:\s+"[^"]*")?\)/g))
-      add(match[1], "正文原始图片", "image");
-  }
-  return [...candidates.values()];
-}
-
 async function syncSource({ workspace = ROOT, adapter, startDate, dryRun = false, now = new Date(), beforeWrite } = {}) {
   workspace = path.resolve(workspace);
   if (!fs.existsSync(path.join(workspace, "03-信息记录"))) throw new Error("信息记录目录不存在");
@@ -227,16 +197,18 @@ async function syncSource({ workspace = ROOT, adapter, startDate, dryRun = false
     let detailsRead = 0;
     for (const listed of eligible) {
       const prior = state.notes[listed.note_id], listHash = fingerprint(listed);
-      if (prior?.listHash === listHash && sourceDate(listed.created_at) < recentDate) continue;
+      if (prior?.renderVersion === RENDER_VERSION && prior.listHash === listHash && sourceDate(listed.created_at) < recentDate) continue;
       const detail = await source.detail(listed.note_id);
       detailsRead += 1;
       const materialHash = fingerprint(detail.note);
-      if (prior?.materialHash === materialHash) {
+      // Only template fields affect the local record; hidden fields and signed
+      // attachment URLs can change even when the displayed content does not.
+      if (prior?.renderVersion === RENDER_VERSION && hash(renderNote(name, detail.note, prior.sequence)) === prior.blockHash) {
         next.notes[listed.note_id].listHash = listHash;
         continue;
       }
       sourceDate(detail.note.created_at);
-      changes.push({ listed, listHash, materialHash, ...detail });
+      changes.push({ listed, listHash, materialHash, layoutOnly: prior?.materialHash === materialHash, ...detail });
     }
     const docs = new Map(), baselines = new Map(), files = new Map(), changedDates = new Set();
     const stageFile = (relative, bytes) => {
@@ -269,22 +241,15 @@ async function syncSource({ workspace = ROOT, adapter, startDate, dryRun = false
       const sequences = [...day(date).matchAll(new RegExp(`^## ${date.replaceAll("-", "")}-([0-9]+)\\b`, "gm"))].map((match) => Number(match[1]));
       const sequence = prior?.date === date ? prior.sequence : Math.max(0, ...sequences) + 1;
       const snapshot = `outputs/信息同步/${name}/${id}/${change.materialHash}`;
-      const assets = [];
-      for (const [position, candidate] of assetCandidates(note).entries()) {
-        const ext = new URL(candidate.url).pathname.match(/\.([a-zA-Z0-9]{1,6})$/)?.[1]?.toLowerCase()
-          || ({ image: "img", audio: "audio", pdf: "pdf", video: "video" }[candidate.type] || "bin");
-        const file = `attachment-${position + 1}.${ext}`;
-        const bytes = dryRun ? null : await source.asset(candidate.url);
-        if (bytes) stageFile(`${snapshot}/${file}`, bytes);
-        assets.push({ ...candidate, file, sha256: bytes ? hash(bytes) : null });
-      }
-      const block = renderNote(name, note, sequence, snapshot, assets);
+      const block = renderNote(name, note, sequence);
       docs.set(date, existing ? replace(day(date), existing, block) : day(date) + "\n" + block + "\n");
       changedDates.add(date);
-      stageFile(`${snapshot}/raw.json`, change.raw);
-      stageFile(`${snapshot}/manifest.json`, json({ source: name, note_id: id, fetched_at: now.toISOString(), assets }));
+      if (!change.layoutOnly) {
+        stageFile(`${snapshot}/raw.json`, change.raw);
+        stageFile(`${snapshot}/manifest.json`, json({ source: name, note_id: id, fetched_at: now.toISOString(), fields: ["content"] }));
+      }
       next.notes[id] = { date, sequence, createdAt: note.created_at, listHash: change.listHash, materialHash: change.materialHash,
-        blockHash: hash(block), indexEntry: indexEntry(note), snapshot };
+        blockHash: hash(block), indexEntry: indexEntry(note), snapshot, renderVersion: RENDER_VERSION };
       if (prior) updated += 1; else added += 1;
     }
     const indexRelative = "03-信息记录/索引.md";
@@ -305,8 +270,7 @@ async function syncSource({ workspace = ROOT, adapter, startDate, dryRun = false
     // Verify field fidelity from the rendered records before committing anything.
     for (const { note } of changes) {
       const saved = docs.get(sourceDate(note.created_at));
-      for (const [field, value] of [["content", note.content], ["ref_content", note.ref_content], ["audio.original", note.audio?.original],
-        ["audio.transcript", note.audio?.transcript], ["web_page.excerpt", note.web_page?.excerpt], ["web_page.content", note.web_page?.content]]) {
+      for (const [field, value] of [["content", note.content]]) {
         if (typeof value !== "string" || !value) continue;
         const block = locate(saved, name, note.note_id, field);
         const [a, b] = markers(name, note.note_id, field);
