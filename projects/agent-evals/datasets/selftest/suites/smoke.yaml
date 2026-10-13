@@ -1,0 +1,9 @@
+schema_version: 1
+name: evaluator-smoke
+purpose: selftest
+cases:
+- datasets/selftest/cases/greeting.yaml
+- datasets/selftest/cases/sales.summary.yaml
+- datasets/selftest/cases/memory.preference.yaml
+- datasets/selftest/cases/task.authorization.yaml
+- datasets/selftest/cases/file.csv.yaml

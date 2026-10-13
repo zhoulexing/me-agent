@@ -1,0 +1,7 @@
+kind: yba
+base_url: http://127.0.0.1:8080
+isolated_test_environment: false
+declared_revision: ''
+environment_revision: ''
+headers_env: {}
+sessions: []

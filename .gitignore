@@ -36,6 +36,7 @@ venv
 .venv-video
 .workbuddy
 .vscode
+.playwright-cli/
 
 baoyu-skill-assets
 cover-image/

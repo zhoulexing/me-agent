@@ -1,0 +1,18 @@
+schema_version: 1
+case_id: greeting
+description: 简单问候
+tags:
+- selftest
+- business-example
+turns:
+- user: 你好
+graders:
+- id: runtime.completed
+  params: {}
+- id: answer.nonempty
+  params: {}
+- id: tools.forbidden
+  params:
+    names:
+    - mcp__agent__write_memory
+    - mcp__agent__manage_automatic_task

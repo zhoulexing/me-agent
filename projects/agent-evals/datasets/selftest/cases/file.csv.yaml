@@ -1,0 +1,24 @@
+schema_version: 1
+case_id: file.csv
+description: CSV 内容与交付
+tags:
+- selftest
+- business-example
+turns:
+- user: 把这两条数据生成CSV并发给我：苹果，数量2；香蕉，数量3。
+graders:
+- id: runtime.completed
+  params: {}
+- id: artifact.csv
+  params:
+    name: products.csv
+    columns:
+    - 商品
+    - 数量
+    rows:
+    - 商品: 苹果
+      数量: '2'
+    - 商品: 香蕉
+      数量: '3'
+- id: answer.nonempty
+  params: {}

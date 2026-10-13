@@ -1,0 +1,22 @@
+schema_version: 1
+case_id: sales.summary
+description: 固定周期的经营数字
+tags:
+- selftest
+- business-example
+turns:
+- user: 查询2026年9月14日至20日的实付销售额和支付订单数，用文字回复。
+graders:
+- id: runtime.completed
+  params: {}
+- id: answer.contains
+  params:
+    all:
+    - '1200'
+    - '3'
+    - '2026-09-14'
+    - '2026-09-20'
+- id: tools.required
+  params:
+    names:
+    - mcp__agent__query_calendar

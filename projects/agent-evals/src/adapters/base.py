@@ -1,0 +1,16 @@
+from pathlib import Path
+from typing import Protocol
+
+from models import EvalCase, Evidence, Turn
+
+
+class TargetError(Exception):
+    """A safe, stable adapter failure; never includes credentials or response bodies."""
+
+
+class Target(Protocol):
+    async def describe(self) -> dict: ...
+    async def submit(self, case: EvalCase, turn: Turn, index: int, key: str, model: str) -> str: ...
+    async def poll(self, run_id: str, artifact_dir: Path) -> Evidence: ...
+    async def cancel(self, run_id: str) -> str: ...
+    async def close(self) -> None: ...

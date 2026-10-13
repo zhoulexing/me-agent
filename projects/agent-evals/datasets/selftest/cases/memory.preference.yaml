@@ -1,0 +1,19 @@
+schema_version: 1
+case_id: memory.preference
+description: 偏好真正持久化
+tags:
+- selftest
+- business-example
+turns:
+- user: 以后叫我周总。
+graders:
+- id: runtime.completed
+  params: {}
+- id: state.equals
+  params:
+    path: memory.display_name
+    value: 周总
+- id: answer.contains
+  params:
+    all:
+    - 周总

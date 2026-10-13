@@ -1,0 +1,56 @@
+{
+  "synthetic": true,
+  "turns": [
+    {
+      "evidence": {
+        "status": "completed",
+        "events": [
+          {
+            "event_id": "calendar",
+            "kind": "tool_use",
+            "payload": {
+              "name": "mcp__agent__query_calendar",
+              "input": {
+                "dates": [
+                  "2026-09-14",
+                  "2026-09-20"
+                ]
+              }
+            }
+          },
+          {
+            "event_id": "answer",
+            "kind": "outbound",
+            "payload": {
+              "content": "2026-09-14 至 2026-09-20：实付销售额1200元，支付订单数3。"
+            }
+          },
+          {
+            "event_id": "final",
+            "kind": "result",
+            "payload": {
+              "done_type": "query",
+              "usage": {
+                "input_tokens": 100,
+                "output_tokens": 20,
+                "cache_read_input_tokens": 0,
+                "cache_creation_input_tokens": 0
+              }
+            }
+          }
+        ],
+        "completeness": {
+          "trace": true,
+          "outbound": true,
+          "state": true,
+          "artifacts": true
+        },
+        "state": {},
+        "notes": [
+          "Synthetic evaluator self-test. No Agent or business API was executed."
+        ]
+      },
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+schema_version: 1
+name: evaluator-golden
+suite: datasets/selftest/suites/smoke.yaml
+repetitions: 2
+concurrency: 2
+variants:
+- name: golden
+  target: configs/targets/golden.yaml

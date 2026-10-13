@@ -6,6 +6,7 @@
 
 | Skill | 职责 |
 | --- | --- |
+| `help-me-understand` | 解释复杂材料的机制、证据与边界，按理解障碍选择文字、图示或交互示例 |
 | `zlx-note` | 本地资料归档、索引、回查与 Get 笔记同步判断 |
 | `zlx-self-media` | 自媒体选题、写作、标题与跨平台内容规划 |
 | `zlx-video-cut` | 口播视频剪辑、字幕校对与成片检查，调用 `zlx-cli video` |
