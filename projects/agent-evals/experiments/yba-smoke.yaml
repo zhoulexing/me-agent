@@ -1,0 +1,8 @@
+schema_version: 1
+name: yba-prod-greeting
+suite: datasets/yba/suites/smoke.yaml
+repetitions: 1
+concurrency: 1
+variants:
+  - name: current-yba
+    target: configs/targets/yba.prod.local.yaml

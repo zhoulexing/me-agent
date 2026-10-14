@@ -1,0 +1,13 @@
+kind: yba
+pod_environment: prod
+pod_transport: admin
+base_url: https://claw-admin.prod.qima-inc.com
+pod_id: agent-pod-prod-youzan-business-assistant-43729418
+headers_env: {}
+cookie_file: ~/project/zlx/yzclaw-helper/.claw-cli/environments/prod/pod-cookie
+# Fill these after preparing isolated test data, routing, and fresh session leases.
+isolated_test_environment: false
+# Observed from Pod image on 2026-10-14; recheck after deployment changes.
+declared_revision: image:1.2.0.3593-pod-main-agent
+environment_revision: ''
+sessions: []

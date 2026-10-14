@@ -1,7 +1,13 @@
 kind: yba
-base_url: http://127.0.0.1:8080
+pod_environment: qa
+pod_transport: admin
+base_url: https://claw-admin.qa.qima-inc.com
+pod_id: agent-pod-qa-youzan-business-assistant-your-test-pod
 isolated_test_environment: false
 declared_revision: ''
 environment_revision: ''
-headers_env: {}
+headers_env:
+  Cookie: AGENT_POD_COOKIE
+# To reuse yzclaw-helper's cached login, remove the Cookie headers_env entry and set:
+# cookie_file: /path/to/yzclaw-helper/.claw-cli/environments/qa/pod-cookie
 sessions: []

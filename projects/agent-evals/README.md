@@ -119,7 +119,9 @@ graders:
 
 ## 真实 YBA 接入
 
-详见 [YBA 适配器协议](docs/adapters/yba.md)。先复制 `configs/targets/yba.example.yaml` 填写隔离测试实例、包含 Trace/最终边界能力的明确版本以及专用 session 路由，再编写引用该配置的实验。每个用例的每次重复都要有不同的 `session_key`，只换 `thread_id` 不够。
+详见 [YBA 适配器协议](docs/adapters/yba.md)。先复制 `configs/targets/yba.example.yaml`（或用户指定 Pod 的 `configs/targets/yba.prod.example.yaml`）填写环境、完整 Pod ID、Cookie 来源与隔离测试实例、包含 Trace/最终边界能力的明确版本以及专用 session 路由，再编写引用该配置的实验。每个用例的每次重复都要有不同的 `session_key`，只换 `thread_id` 不够。
+
+默认调用链为 `agent-evals → claw-admin → /api/agent-pod-proxy/api/v1/agent-pods/<Pod ID>/proxy/8080 → YBA`，管理台 Cookie 从环境变量或明确指定的 helper 缓存文件读取。内网运行可选择 `pod_transport: service`，通过 Pod 服务的 `/api/v1/agent-pods/<Pod ID>/proxy/8080` 与 Bearer API Key 接入，配置见 `configs/targets/yba-service.example.yaml`。不再支持本地直连；登录失效或提交结果不确定时不会自动重发。
 
 运行真实目标必须显式加 `--live`。该入口可能发送消息，只能连接准备好的测试通道；评测器不会为你建立或重置 YBA 实例。租约记录持久保留，不能把受过写入的会话当作干净环境重用。真实重跑必须指定新配置：
 
@@ -128,9 +130,28 @@ uv run python src/cli.py run experiments/my-yba.yaml --live
 uv run python src/cli.py rerun <trial-id> --target configs/targets/fresh-yba.yaml --live
 ```
 
-目前 YBA 适配器能够提交后台消息、按 Trace 读取本地记录并等待 `done_type=query`，但拿不到实际加载的 Prompt/Skill 快照、真实出站回执、业务状态或产物文件。因此不能通过当前接口完成全部 5 个业务场景验收，真实版本对比会标为需复核。
+目前 YBA 适配器经远端 Pod 代理提交后台消息、按 Trace 读取 Pod 内记录并等待 `done_type=query`，但拿不到实际加载的 Prompt/Skill 快照、真实出站回执、业务状态或产物文件。因此不能通过当前接口完成全部 5 个业务场景验收，真实版本对比会标为需复核。
 
 ## 开发与当前边界
+
+### 最小真实 YBA 测试
+
+已提供 `datasets/yba/cases/greeting.yaml`、`datasets/yba/suites/smoke.yaml` 和 `experiments/yba-smoke.yaml`。一次运行只提交一轮问候，使用一个 Trial，模型继承目标 Pod 的默认配置。
+
+```bash
+cp configs/targets/yba.prod.example.yaml configs/targets/yba.prod.local.yaml
+```
+
+在本地目标配置中填写专用测试 `sessions`、真实测试环境标识 `environment_revision`，并在确已准备隔离测试资源后设置 `isolated_test_environment: true`。`declared_revision` 已按 2026-10-14 Pod 列表所见镜像 tag 填写，部署变更后需要核对。`*.local.yaml` 不提交 Git；默认复用 helper 的 prod Cookie 缓存。
+
+```bash
+uv run python src/cli.py validate experiments/yba-smoke.yaml --experiment
+uv run python src/cli.py run experiments/yba-smoke.yaml --live
+```
+
+第二条命令真实调用目标 Pod 的 Agent，`channel_mode=all` 可能向所选通道发送回复。该用例只检查 Query 完成和 `source: assistant` 的内部回答文本非空，不核验真实送达、业务状态或产物。报告路径由 CLI 输出；失败可通过进度中的 Trial ID 执行 `inspect`。真实目标的会话租约永久保留，再次执行需要新的专用 `session_key`，不能只更换 `thread_id`。
+
+### 检查
 
 ```bash
 uv run pytest -q

@@ -1,0 +1,12 @@
+kind: yba
+pod_environment: qa
+pod_transport: service
+base_url: http://agent-pod.qa.s.qima-inc.com
+pod_id: agent-pod-qa-youzan-business-assistant-your-test-pod
+isolated_test_environment: false
+declared_revision: ''
+environment_revision: ''
+headers_env:
+  Authorization: YBA_POD_SERVICE_AUTHORIZATION
+# The environment variable must contain "Bearer <authorized-service-api-key>".
+sessions: []

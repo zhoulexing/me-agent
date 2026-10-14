@@ -1,0 +1,14 @@
+schema_version: 1
+case_id: yba.greeting
+description: 最小真实 YBA 问候测试，检查 Query 结束与内部回答文本
+tags: [smoke, integration]
+turns:
+  - user: 你好，请用一句话回复。
+limits:
+  timeout_seconds: 180
+  max_tool_calls: 20
+graders:
+  - id: runtime.completed
+  - id: answer.nonempty
+    params:
+      source: assistant

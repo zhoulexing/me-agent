@@ -44,12 +44,17 @@ async def rerun(config, trial_id, *, target_path=None, live=False, progress=None
     manifest = repo.get(trial["experiment_id"])["manifest"]
     case = EvalCase.model_validate(next(c for c in manifest["cases"] if c["case_id"] == trial["case_id"]))
     original_variant = next(v for v in manifest["experiment"]["variants"] if v["name"] == trial["variant"])
-    original_target = TargetConfig.model_validate(manifest["targets"][trial["variant"]])
-    target = config.load(target_path, TargetConfig) if target_path else original_target
-    if target.kind != original_target.kind:
-        raise ValueError("rerun must use the original target kind")
-    if target.kind == "yba" and (not live or not target_path):
+    original_target = manifest["targets"][trial["variant"]]
+    if original_target["kind"] == "yba" and (not live or not target_path):
         raise ValueError("live rerun requires --live and --target with a new isolated session lease")
+    # Historical direct-HTTP manifests can rerun with a fresh remote Pod config.
+    target = (
+        config.load(target_path, TargetConfig)
+        if target_path
+        else TargetConfig.model_validate(original_target)
+    )
+    if target.kind != original_target["kind"]:
+        raise ValueError("rerun must use the original target kind")
     variant = Variant(**{**original_variant, "target": target_path or original_variant["target"]})
     experiment = Experiment(
         name=f"rerun-{trial_id}", suite=manifest["experiment"]["suite"], variants=[variant]

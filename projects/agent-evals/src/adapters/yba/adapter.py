@@ -1,7 +1,5 @@
 """Use verified YBA notify and message-query APIs; do not invent export endpoints."""
 
-import json
-import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -9,6 +7,7 @@ import httpx
 
 from adapters.base import TargetError
 from adapters.yba.collector import collect, parse_records
+from adapters.yba.transport import PodTransport
 from models import EvalCase, SessionLease, TargetConfig, Turn
 
 BEIJING = timezone(timedelta(hours=8))
@@ -17,55 +16,22 @@ BEIJING = timezone(timedelta(hours=8))
 class YbaTarget:
     def __init__(self, config: TargetConfig, lease: SessionLease, client: httpx.AsyncClient | None = None):
         self.config, self.lease = config, lease
-        headers = {}
-        self.secrets = []
-        for header, variable in config.headers_env.items():
-            value = os.environ.get(variable)
-            if not value:
-                raise TargetError(f"missing header environment variable: {variable}")
-            headers[header] = value
-            self.secrets.append(value)
-            if value.startswith(("Bearer ", "Basic ")):
-                self.secrets.append(value.split(" ", 1)[1])
-        self.client = client or httpx.AsyncClient(
-            base_url=config.base_url.rstrip("/"),
-            headers=headers,
-            timeout=config.request_timeout_seconds,
-            follow_redirects=False,
-            trust_env=False,
-        )
+        self.transport = PodTransport(config, client)
+        self.secrets = self.transport.secrets
         self.starts: dict[str, datetime] = {}
 
     async def request(self, method: str, path: str, *, body=None, missing_ok=False):
-        # Streaming bounds apply before JSON parsing. Mutating POSTs are never retried.
-        try:
-            async with self.client.stream(method, path, json=body) as response:
-                if missing_ok and response.status_code == 404:
-                    return None
-                if not 200 <= response.status_code < 300:
-                    raise TargetError(f"YBA {path}: HTTP {response.status_code}")
-                chunks = bytearray()
-                async for chunk in response.aiter_bytes():
-                    chunks.extend(chunk)
-                    if len(chunks) > self.config.max_response_bytes:
-                        raise TargetError("YBA response exceeds configured byte budget")
-                try:
-                    value = json.loads(chunks)
-                except (ValueError, UnicodeError) as exc:
-                    raise TargetError("YBA response is not valid JSON") from exc
-        except httpx.HTTPError as exc:
-            raise TargetError(
-                f"YBA transport error: {type(exc).__name__}; submission is not retried"
-            ) from exc
-        if not isinstance(value, dict) or value.get("success") is not True:
-            raise TargetError("YBA response envelope is not successful")
-        return value.get("data")
+        return await self.transport.request(method, path, body=body, missing_ok=missing_ok)
 
     async def describe(self):
         # The inspected API cannot report actual loaded prompt/skill hashes or safe cancellation.
         return {
             "kind": "yba",
             "synthetic": False,
+            "pod_id": self.config.pod_id,
+            "pod_environment": self.config.pod_environment,
+            "pod_transport": self.config.pod_transport,
+            "proxy_origin": self.config.base_url,
             "revision_source": "configuration_unverified",
             "declared_revision": self.config.declared_revision,
             "environment_revision": self.config.environment_revision,
@@ -121,4 +87,4 @@ class YbaTarget:
         return "unsupported: target execution may still be running; retire its test session"
 
     async def close(self):
-        await self.client.aclose()
+        await self.transport.close()

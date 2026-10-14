@@ -41,15 +41,19 @@ def evidence(status="completed", complete=True, events=None, **kwargs):
 
 
 def yba_config(**kwargs):
-    return TargetConfig(
-        kind="yba",
-        base_url="http://test",
-        isolated_test_environment=True,
-        declared_revision="test-sha",
-        environment_revision="fixture-v1",
-        sessions=[SessionLease(session_key="feishu:test:test")],
-        **kwargs,
-    )
+    config = {
+        "kind": "yba",
+        "base_url": "https://claw-admin.qa.qima-inc.com",
+        "pod_id": "agent-pod-qa-youzan-business-assistant-test",
+        "pod_environment": "qa",
+        "headers_env": {"Cookie": "YBA_EVAL_TEST_COOKIE"},
+        "isolated_test_environment": True,
+        "declared_revision": "test-sha",
+        "environment_revision": "fixture-v1",
+        "sessions": [SessionLease(session_key="feishu:test:test")],
+    }
+    config.update(kwargs)
+    return TargetConfig(**config)
 
 
 def test_independent_imports_and_project_paths():

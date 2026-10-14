@@ -62,6 +62,10 @@ class TargetConfig(Model):
     kind: Literal["fixture", "yba"]
     fixtures: str | None = None
     base_url: str | None = None
+    pod_id: str = ""
+    pod_environment: Literal["qa", "pre", "prod"] = "qa"
+    pod_transport: Literal["admin", "service"] = "admin"
+    cookie_file: str | None = None
     headers_env: dict[str, str] = Field(default_factory=dict)
     poll_seconds: float = Field(default=1, gt=0, le=30)
     request_timeout_seconds: float = Field(default=15, gt=0, le=60)
@@ -77,13 +81,43 @@ class TargetConfig(Model):
             if not self.fixtures:
                 raise ValueError("fixture target requires fixtures")
         else:
+            import ipaddress
+            import re
             from urllib.parse import urlsplit
 
+            if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,252}", self.pod_id) or not self.pod_id.startswith(
+                f"agent-pod-{self.pod_environment}-"
+            ):
+                raise ValueError("YBA requires a full Pod ID matching pod_environment")
+            if not self.base_url and self.pod_transport == "admin":
+                self.base_url = f"https://claw-admin.{self.pod_environment}.qima-inc.com"
             url = urlsplit(self.base_url or "")
             if url.scheme not in {"http", "https"} or not url.hostname:
                 raise ValueError("YBA requires an HTTP(S) base_url")
             if url.username or url.password or url.query or url.fragment:
                 raise ValueError("base_url must not contain credentials, query or fragment")
+            if url.path not in {"", "/"}:
+                raise ValueError("base_url must be a Pod service origin without a path")
+            host = url.hostname.lower()
+            local = host.rstrip(".") in {"localhost", "localhost.localdomain"} or host.endswith(".localhost")
+            try:
+                address = ipaddress.ip_address(host)
+                local = local or address.is_loopback or address.is_unspecified
+            except ValueError:
+                pass
+            if local:
+                raise ValueError("YBA evaluations must use the remote Pod proxy, not localhost")
+            if self.pod_transport == "admin":
+                expected = f"claw-admin.{self.pod_environment}.qima-inc.com"
+                if url.scheme != "https" or host != expected or url.port not in {None, 443}:
+                    raise ValueError("admin transport must use the matching HTTPS claw-admin origin")
+            elif self.cookie_file:
+                raise ValueError("cookie_file is only supported by admin transport")
+            if self.cookie_file:
+                from pathlib import Path
+
+                if not Path(self.cookie_file).is_absolute() and not self.cookie_file.startswith("~/"):
+                    raise ValueError("cookie_file must be an absolute or home-relative path")
             if not self.isolated_test_environment or not self.sessions:
                 raise ValueError("YBA requires explicitly isolated test sessions")
             # Workspace is session-scoped, not thread-scoped: two threads do not isolate trials.

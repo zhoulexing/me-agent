@@ -1,0 +1,5 @@
+schema_version: 1
+name: yba-smoke
+purpose: integration
+cases:
+  - datasets/yba/cases/greeting.yaml

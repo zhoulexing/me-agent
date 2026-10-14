@@ -16,7 +16,7 @@ from evidence.redaction import redact
 from execution.runner import run_experiment
 from execution.worker import execute
 from graders import evaluate, grade
-from models import Artifact, Event
+from models import Artifact, Event, TrialResult
 from service import rerun
 from storage import Repository
 
@@ -212,3 +212,46 @@ def test_credentials_are_redacted_before_evidence():
     assert sanitized["input"]["password"] == "[REDACTED]"
     assert "hidden" not in json.dumps(sanitized)
     assert "known-secret" not in json.dumps(sanitized)
+
+
+def test_legacy_direct_yba_manifest_reruns_with_new_pod_config(tmp_path, monkeypatch):
+    import service
+
+    config = EvalConfig(tmp_path, tmp_path / "state")
+    repo = Repository(config.state_dir)
+    original_case = case()
+    manifest = {
+        "cases": [original_case.model_dump()],
+        "experiment": {
+            "suite": "historical-suite.yaml",
+            "variants": [{"name": "baseline", "target": "old-target.yaml", "model": "old-model"}],
+        },
+        "suite": {"purpose": "integration"},
+        "targets": {"baseline": {"kind": "yba", "base_url": "http://127.0.0.1:8080"}},
+    }
+    experiment = repo.create("historical-yba", manifest)
+    trial = repo.add_trial(experiment, original_case.case_id, "baseline", 0)
+    repo.finish_trial(
+        TrialResult(
+            trial_id=trial,
+            case_id=original_case.case_id,
+            variant="baseline",
+            repetition=0,
+            mode="yba",
+            execution_status="finished",
+            verdict="unknown",
+        )
+    )
+    (tmp_path / "remote.yaml").write_text(json.dumps(yba_config().model_dump()))
+
+    async def capture(config, experiment, suite, cases, targets, progress, **kwargs):
+        assert cases[0] == original_case
+        assert experiment.variants[0].model == "old-model"
+        assert targets["baseline"].pod_id == "agent-pod-qa-youzan-business-assistant-test"
+        assert kwargs["lineage"]["source_trial_id"] == trial
+        return "new-experiment"
+
+    monkeypatch.setattr(service, "run_definition", capture)
+    assert asyncio.run(rerun(config, trial, target_path="remote.yaml", live=True)) == "new-experiment"
+    with pytest.raises(ValueError, match="requires --live and --target"):
+        asyncio.run(rerun(config, trial))
