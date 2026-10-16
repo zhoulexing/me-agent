@@ -28,6 +28,12 @@ export function createHumanRenderer({ output = process.stdout, diagnostics = pro
         textSeen = true;
         output.write(event.text);
         lineOpen = !event.text.endsWith('\n');
+      } else if (event.type === 'permission.configured') {
+        closeLine();
+        details.write(`[权限] sandbox=${event.data.sandbox} approval=${event.data.approval} workspace=${JSON.stringify(event.data.workspace)} network=${event.data.network}\n`);
+      } else if (event.type === 'permission.decided') {
+        closeLine();
+        details.write(`[权限 ${event.data.decision}] ${event.data.name}: ${event.data.reason}\n`);
       } else if (event.type === 'tool.started') {
         closeLine();
         details.write(`[工具] ${event.data.name} ${describe(event.data.arguments)}\n`);

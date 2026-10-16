@@ -5,6 +5,7 @@ export const EVENT_TYPES = new Set([
   'turn.started', 'turn.completed', 'turn.failed', 'turn.cancelled', 'turn.interrupted',
   'step.started', 'step.completed', 'step.interrupted', 'model.responded',
   'tool.started', 'tool.completed', 'tool.skipped', 'tool.result_unknown', 'tool.not_started',
+  'permission.configured', 'permission.requested', 'permission.reviewed', 'permission.decided',
 ]);
 
 export function createEvent(seq, type, data = {}) {

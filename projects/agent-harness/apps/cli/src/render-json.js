@@ -4,6 +4,7 @@ export function createJsonRenderer(output = process.stdout) {
     onEvent(event) {
       if (event.type === 'turn.started') write({ type: 'session', sessionId: event.data.sessionId });
       else if (event.type === 'text.delta') write({ type: 'text_delta', text: event.text, provisional: true });
+      else if (event.type.startsWith('permission.')) write({ type: event.type, data: event.data });
       else if (event.type === 'tool.started') write({ type: 'tool_call', callId: event.data.callId,
         name: event.data.name, arguments: event.data.arguments });
       else if (event.type === 'message.appended' && event.data.message.role === 'tool') {

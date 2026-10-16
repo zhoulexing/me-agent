@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline';
 import { createHumanRenderer, printHistory } from './render.js';
+import { createLineReader, terminalApprover } from './approval.js';
 
 export async function runInteractive({ harness, sessionId: initialSessionId, input = process.stdin, output = process.stdout }) {
   let sessionId = initialSessionId;
@@ -10,6 +11,8 @@ export async function runInteractive({ harness, sessionId: initialSessionId, inp
   } else output.write('新会话。输入 /help 查看命令。\n');
 
   const rl = createInterface({ input, output, terminal: Boolean(input.isTTY), historySize: 100 });
+  const reader = createLineReader(rl);
+  const requestApproval = terminalApprover({ reader, output, enabled: Boolean(input.isTTY) });
   const renderer = createHumanRenderer({ output, diagnostics: output, interactive: true,
     initialSessionId: sessionId });
   let active;
@@ -22,7 +25,9 @@ export async function runInteractive({ harness, sessionId: initialSessionId, inp
   rl.setPrompt('你> ');
   rl.prompt();
   try {
-    for await (const raw of rl) {
+    for (;;) {
+      const raw = await reader.next();
+      if (raw === undefined) break;
       const prompt = raw.trim();
       if (!prompt) { rl.prompt(); continue; }
       if (prompt === '/exit' || prompt === '/quit') break;
@@ -42,7 +47,7 @@ export async function runInteractive({ harness, sessionId: initialSessionId, inp
         active = new AbortController();
         try {
           const result = await harness.run(prompt, {
-            sessionId, signal: active.signal,
+            sessionId, signal: active.signal, requestApproval,
             onEvent(event) {
               if (event.type === 'turn.started') sessionId = event.data.sessionId;
               renderer.onEvent(event);

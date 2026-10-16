@@ -5,7 +5,8 @@
   "scripts": {
     "cli": "node apps/cli/src/cli.js",
     "example:first-turn": "node examples/01-minimal-turn/run.js",
-    "test": "node --test tests/session.test.js tests/cli.test.js",
+    "example:permissions": "node examples/02-permissions/run.js",
+    "test": "node --test tests/session.test.js tests/cli.test.js tests/permissions.test.js",
     "test:live": "node --test tests/minimal-turn.live.test.js"
   },
   "engines": {

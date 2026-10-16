@@ -9,7 +9,7 @@ try {
   const args = parseArgs(process.argv.slice(2));
   if (args.mode === 'help') process.stdout.write(usage);
   else {
-    const harness = createHarness({ protocol: args.protocol });
+    const harness = createHarness({ protocol: args.protocol, ...args.permissions });
     if (args.mode === 'interactive') await runInteractive({ harness, sessionId: args.sessionId });
     else process.exitCode = await runSingle({ harness, ...args });
   }

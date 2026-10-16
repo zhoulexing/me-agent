@@ -1,230 +1,224 @@
 # AWS 美国固定 IP 代理搭建指南
 
-从注册账号，到电脑和 iPhone 接入自己的服务器。
+适用：**Mac + iPhone**。更新：2026-10-16。
 
-更新日期：2026-10-15。适用环境：AWS 国际区 Lightsail、Ubuntu 24.04 LTS、macOS 上的 Clash Verge Rev、iPhone 上的 Shadowrocket。本次服务器使用 sing-box 1.14.3；菜单名称可能随软件版本变化。
+这篇教程从准备软件开始，带你搭好美国 AWS 代理。完成后，**Claude、Anthropic 和 `api4.ipify.org` 走美国 AWS 固定 IP，其他网站继续按原来的规则访问。**
 
-> 阅读方式：按第 1～8 章依次完成。每个阶段都有“完成标志”，通过后再继续。第 9 章用于排错，第 10 章负责维护和停用。SSH 隧道仅是附录中的可选测试。
->
-> 本指南基于实际搭建过程整理，电脑经 AWS 访问 HTTPS 网站、出口 IP 和 UDP DNS 已验证。手机曾因扫码后密码、算法为空而失败；更换导入编码后的手机成功结果尚未确认，因此手机主流程采用可逐项核对的手动配置。
+按下面六步做，每一步看到“完成标志”再继续。电脑和手机的这套方案均已在本次搭建中跑通；手机结果由使用者确认。截图中的名称是示例，配置中的 `YOUR_STATIC_IP`、`YOUR_SS_KEY` 要换成你自己的值。
 
-## 1. 先看懂要搭建什么
+1. [前期准备：设备、软件和账号](#step-1)
+2. [先搭好梯子：订阅 + Clash Verge](#step-2)
+3. [注册美区 Apple 账号，安装 Shadowrocket](#step-3)
+4. [注册 AWS，创建美国 Lightsail 服务器](#step-4)
+5. [设置代理：服务器 → Mac → iPhone](#step-5)
+6. [打开 IP 检测网站，验证是否成功](#step-6)
 
-### 1.1 最终连接流程
+<a id="step-1"></a>
+## 1. 前期准备：设备、软件和账号
 
-![电脑与手机分别连接 AWS 的流程图](../outputs/aws-proxy-guide/assets/01-architecture.svg)
+### 需要准备什么
 
-电脑和手机各自连接 AWS，互不依赖。手机不用连接电脑热点，电脑关机不会影响手机。只要 AWS 实例运行、代理服务正常，两台设备可以使用同一个节点，共享服务器流量额度。
-
-| 名称 | 可以怎样理解 | 在本方案中的作用 |
-| --- | --- | --- |
-| AWS | 云服务提供商 | 提供服务器、IP 和网络 |
-| Lightsail | AWS 中一种套餐式云服务器产品 | 本教程购买的服务，不是 EC2 |
-| Ubuntu | 服务器的操作系统 | 类似电脑上的 macOS，但运行在云端 |
-| 静态公网 IPv4 | 服务器固定的互联网地址 | 客户端连接它，目标网站通常看到它作为出口 |
-| sing-box | 服务器上的代理程序 | 接收并转发代理请求 |
-| Shadowsocks | 客户端和服务器约定的加密通信协议 | 两端必须使用相同算法和密钥 |
-| Clash Verge Rev | 电脑上的代理客户端 | 选节点、接管流量、按规则分流 |
-| Shadowrocket | iPhone 上的代理客户端 | 建立手机到服务器的代理连接 |
-| SSH | 管理服务器的远程终端连接 | 安装、维护软件；正式代理不依赖它常驻 |
-
-“固定 IP”表示地址可保持稳定，不代表住宅 IP，也不代表服务商一定接受该地址。AWS 地址属于云服务网络。代理连通、目标网站可访问、账号有权使用某个模型，是三件需要分别验证的事。本教程不承诺 Claude、Cursor 或其他服务的账号审核与模型权限结果。
-
-### 1.2 全文只使用自己的参数
-
-先在密码管理器或私密笔记里建立一张参数表。不要把真实密钥写进公开文档。
-
-| 参数 | 本教程采用的值 | 你需要做什么 |
-| --- | --- | --- |
-| AWS 地区 | Oregon / 俄勒冈，`us-west-2` | 创建时选择它 |
-| 实例名称 | `personal-us-proxy` | 可照用，也可自定义 |
-| 系统 | Ubuntu 24.04 LTS | 不选 WordPress 等应用镜像 |
-| 静态公网 IP | `YOUR_STATIC_IP` | 替换为控制台里你自己的地址 |
-| 代理端口 | `24443` | 两端与防火墙保持一致 |
-| 算法 | `2022-blake3-aes-128-gcm` | 整串复制，不要删掉前缀 |
-| 代理密钥 | `YOUR_SS_KEY` | 在第 5 章随机生成 |
-| 电脑本地代理端口 | `7897` | 与 Clash Verge 设置中的混合端口一致 |
-
-图中的 `203.0.113.10` 是文档示例地址，不能连接。`YOUR_STATIC_IP`、`YOUR_SS_KEY` 都是占位符，复制配置后必须替换。
-
-## 2. 准备工作与费用
-
-### 2.1 准备清单
-
-- 能正常收邮件的邮箱、本人真实联系方式，以及可接收验证码的手机。
-- 按注册页面要求准备有效支付方式。本文使用的传统／advanced 注册路径要求填写账单资料；部分新注册体验的要求不同。
-- 一台 Mac 和浏览器，用于访问 AWS、安装与测试代理。
-- Clash Verge Rev：从[项目官方发布页](https://github.com/clash-verge-rev/clash-verge-rev/releases)下载稳定版。Apple Silicon 芯片选择 ARM64/aarch64，Intel Mac 选择 x64；可在“关于本机”查看芯片。
-- iPhone：从 [App Store 的 Shadowrocket 页面](https://apps.apple.com/app/shadowrocket/id932747118)安装。已经安装则直接使用；可用性及价格以自己的商店页面为准。
-
-本方案不需要购买域名、配置 Cloudflare、安装 X-UI 面板，也不需要在电脑额外安装 sing-box。sing-box 安装在 AWS 服务器上。
-
-### 2.2 推荐套餐与收费边界
-
-本次采用的 Lightsail Linux 套餐包含公网 IPv4，规格为 **2 vCPU、1 GB 内存、40 GB SSD、2 TB 套餐流量，基础价 7 美元/月**。这是本教程的复现配置，最后以创建页面显示的套餐为准。[官方套餐表](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-bundles.html)
-
-| 项目 | 怎样理解 |
+| 准备项 | 用途 / 去哪里找 |
 | --- | --- |
-| 7 美元/月 | 基础套餐的月度价格；不是全账号所有费用的绝对上限 |
-| 免费额度 | 符合资格的新账号可能享有抵扣金；以自己账号显示的余额、到期日和适用范围为准 |
-| Free plan | 与 Paid plan 区分；当前免费计划通常以 6 个月或额度耗尽较早者为结束条件 |
-| Paid plan | 超出适用抵扣额度等范围的费用会按标准价格产生 |
-| 额外费用 | 超额出站流量、快照、额外磁盘等可能另收费 |
+| 一台 Mac、一部 iPhone | 本教程不涉及 Windows、Android |
+| 一个可用的代理订阅 | 前期访问相关网站，后期作为连接 AWS 的中转线路 |
+| [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev/releases) | 装在 Mac 上，免费；下载官方稳定版 |
+| [Shadowrocket](https://apps.apple.com/us/app/shadowrocket/id932747118) | 装在 iPhone 上，App Store 付费购买；需要可下载它的商店账号 |
+| 长期使用的邮箱和中国大陆手机号 | 接收 Apple、AWS 的验证信息 |
+| AWS 接受的支付卡及真实账单地址 | 注册与支付云服务器费用；是否可用以 AWS 验证为准 |
+| 美区 Apple 账号可用的付款方式或合规购买的美区余额 | 用于购买 Shadowrocket；注册账号和购买 App 是两件事 |
 
-不要把旧教程中的“三个月免费”“固定赠送金额”当作每个账号必有权益。AWS 正在调整注册体验，本文核对时免费计划仍有资格和期限要求。[AWS Free Tier 官方说明](https://aws.amazon.com/free/free-tier-faqs/)
+Mac 上只需要安装 Clash Verge Rev。**sing-box 安装在 AWS 服务器上**，手机只安装 Shadowrocket。浏览器用 Safari 或 Chrome 即可。
 
-**完成标志：**你知道自己将创建什么套餐，也知道注册完成后要检查当前账号属于 Free 还是 Paid。
+### 预计要花多少钱
 
-## 3. 注册 AWS 账号
+| 项目 | 费用 |
+| --- | --- |
+| 代理订阅 | 按服务商当前套餐支付 |
+| Clash Verge Rev | 免费 |
+| Shadowrocket | 按美区 App Store 当时显示的价格购买 |
+| Lightsail 服务器 | 本文选 **7 美元/月**：1 GB 内存、2 vCPU、40 GB SSD、2 TB 套餐流量、含公网 IPv4 |
 
-### 3.1 先选对注册入口
+Lightsail 按小时累计实例费用，有月度套餐上限；税费、超额流量和额外资源另计。免费额度是否抵扣、能用多久，看自己账号的 **Free Tier** 页面。它不是“买一个月，到期自动停机”的产品：**付费计划下，资源保留就会持续计费，停止实例也不等于停止计费。** [套餐价格](https://aws.amazon.com/lightsail/pricing/) · [计费说明](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-frequently-asked-questions-faq-billing-and-account-management.html)
 
-操作位置：**自己电脑的浏览器**。
+**完成标志：** 设备齐全，邮箱、手机号能收验证码，已准备好支付方式。
 
-从 [AWS 官方注册说明](https://aws.amazon.com/resources/create-account/)进入。本文后续需要自主选择美国地区，因此按官方的 [Sign up for AWS (advanced)](https://docs.aws.amazon.com/accounts/latest/reference/getting-started.html) 路径说明操作；从该文档里的 **Sign up for AWS** 链接进入注册表单。
+<a id="step-2"></a>
+## 2. 先搭好梯子：订阅 + Clash Verge
 
-如果看到用 Google、Apple 等账号创建“项目”的新版入口，不要把它与传统 root 邮箱注册表单混为一谈。官方对比表说明，新体验对地区选择和服务范围有限制，advanced 路径允许自主选择地区。**advanced 注册路径不等于必须购买收费技术支持；账户 Free/Paid 计划又是另一项选择。** 已有可正常使用 Lightsail、选择美国地区的 AWS 账号，可以直接跳到第 4 章。[两种注册方式的官方对比](https://docs.aws.amazon.com/accounts/latest/reference/sign-up-for-aws.html)
+先确保能访问后面要用的网站。本教程以 **[iKuuu 入口](https://ikuuu.one/user) + Clash Verge Rev** 为例；已经有可用订阅，可以直接复用。订阅负责提供节点，Clash Verge 负责在电脑上使用这些节点。站点的入口、套餐和可用线路可能变化，以页面为准。
 
-![注册资料与服务器地区是两回事](../outputs/aws-proxy-guide/assets/02-signup.svg)
+### 2.1 获得订阅链接
 
-### 3.2 填写邮箱、账号名称和密码
+1. 打开 [iKuuu](https://ikuuu.one/user)，按站点提示注册或登录。
+2. 选择适合自己的套餐。先确认线路可用，不必为本教程购买长期套餐。
+3. 在用户中心找到 **订阅 / 一键导入 / Clash 订阅**，复制适用于 Clash 的订阅链接。
 
-1. 在 **Root user email address** 填自己的邮箱。
-2. 在 **AWS account name** 填方便自己识别的名称，例如 `personal-cloud`。这不是服务器名称。
-3. 点击 **Verify email address**，到邮箱收验证码；没收到时查看垃圾邮件。
-4. 输入验证码，按页面要求设置登录密码。
-5. 如出现 **Free plan / Paid plan** 选择，阅读各自条款；只做初次试验且符合资格，可选择页面提供的 Free plan。不要因为教程提到套餐月价就直接选择升级。
+订阅链接通常带有个人凭据，自己保存，不发到公开文档。如果连入口都打不开，先使用已有的可用网络或向服务商确认入口；安装 Clash 本身不会自动获得网络线路。
 
-### 3.3 填联系方式：不用编造美国电话和地址
+### 2.2 安装 Clash Verge Rev
 
-1. 个人使用时，若页面提供用途选择，选 **Personal**。
-2. 姓名、国家／地区、地址、邮编填写自己的真实信息。
-3. 电话国家码选择自己号码对应的国家／地区，例如中国大陆号码对应 `+86`。
-4. 当国家码已有独立输入框时，号码栏通常填写手机号本身，避免重复填写国家码。
-5. 若默认国家是 United States，先改国家选项；不要为了创建美国服务器填写虚构美国地址。
+1. 在 Mac 左上角 ** → 关于本机** 看芯片：Apple M 系列选 `aarch64` / ARM64；Intel 选 `x64`。
+2. 到 [官方 Releases](https://github.com/clash-verge-rev/clash-verge-rev/releases) 下载对应的 `.dmg`。
+3. 打开安装包，把 Clash Verge 拖到 **Applications / 应用程序**，再从应用程序启动。
+4. 打开 **订阅** 页，将链接粘到 **订阅文件链接**，点 **导入**，然后点新出现的订阅卡片启用。
 
-**账号联系方式表示你是谁；Oregon 表示服务器放在哪里。二者是不同设置。** 页面如果不接受自己的真实资料，先检查入口、字段格式或联系 AWS 支持，不通过虚构资料继续。
+### 2.3 先让普通代理能用
 
-### 3.4 账单、身份验证和激活
+1. 在 **代理** 页选 **规则** 模式。
+2. 在日常使用的选择组中选一个可用节点，例如美国、日本或香港节点。
+3. 在 **首页** 打开 **系统代理**。本教程先用它接管浏览器；需要接管不遵循系统代理的软件时，再按客户端提示安装服务模式、开启 TUN。
+4. 打开 [GitHub](https://github.com/) 和 [AWS 注册页面](https://signin.aws.amazon.com/signup?request_type=register)，确认能加载。
 
-1. 按页面填写有效支付资料，账单地址与自己的支付资料相符。
-2. 完成要求的短信、电话或其他身份验证。具体顺序以页面为准。
-3. 如需选择技术支持，初次自建代理选择页面提供的免费 **Basic Support** 即可。
-4. 提交注册，等待激活邮件；不要把“邮箱验证成功”当成账号已激活。
-5. 收到激活确认后进入 [AWS 管理控制台](https://console.aws.amazon.com/)。
+**完成标志：** Clash 已导入订阅，浏览器能正常访问上述页面。
 
-这些步骤与所需资料可对照 [AWS advanced 注册操作说明](https://docs.aws.amazon.com/accounts/latest/reference/getting-started.html)。若激活未完成，先处理账号问题，不反复创建资源。
+> 后面这套方案仍然需要订阅节点：它负责“从你这里到 AWS”的第一段连接。日常只开 Clash Verge 这一个电脑代理客户端即可，不需要再开第二个 VPN 或 SSH 隧道。中转能否提速取决于实际线路。
 
-### 3.5 第一次登录后检查两处
+<a id="step-3"></a>
+## 3. 注册美区 Apple 账号，安装 Shadowrocket
 
-- **安全凭证 / Security credentials**：为 root 账号设置 MFA（多因素认证），保存恢复方式。
-- **Billing and Cost Management / 账单与成本管理 → Free Tier、Credits 或当前计划页面**：记录账号计划、抵扣余额和到期日。不要用别人的截图判断自己的免费权益。
+已有可下载 Shadowrocket 的账号，直接安装后跳到第 4 步。
 
-整个教程使用网页控制台管理云资源，不要求创建 AWS Access Key，也不需要把 AWS 登录密码填进 Clash 或 Shadowrocket。
+- 注册入口：[创建 Apple 账户](https://account.apple.com/)。进入后点 **创建你的 Apple 账户**，国家或地区选择 **美国**。
+- 准备未被占用的邮箱、真实生日，以及本人长期使用的手机号。**电话号码区号可选中国大陆 `+86`，使用中国手机号验证，不需要先买美国号码；能否通过以注册页面的实际验证结果为准。** 商店地区和手机号区号是不同设置。
+- 完成邮箱、手机号验证。遇到无法创建的提示，按 [Apple 官方注册说明](https://support.apple.com/zh-cn/108647) 排查。
+- iPhone **设置 → 你的名字 → 媒体与购买项目**，退出这里的原账号，再登录新账号；保留原来的 iCloud 登录。
+- 打开 [Shadowrocket 的美区 App Store 页面](https://apps.apple.com/us/app/shadowrocket/id932747118)，按商店要求补全付款与账单资料并购买。开发者为 **Shadow Launch Technology Limited**，不要下载名字相近的仿冒 App。
 
-**完成标志：**能登录控制台，账号已激活，并已确认计划与额度。
+**完成标志：** iPhone 上能打开 Shadowrocket。
 
-## 4. 创建美国服务器并绑定固定 IP
+<a id="step-4"></a>
+## 4. 注册 AWS，创建美国 Lightsail 服务器
 
-### 4.1 打开 Lightsail
+本章都在 **Mac 浏览器** 操作。先注册 AWS 国际区账号，再进入 Lightsail；Lightsail 不需要另注册一个账号。
 
-操作位置：**电脑浏览器中的 AWS 控制台**。
+### 4.1 注册 AWS 账号
 
-1. 在顶部搜索框输入 `Lightsail`，打开 **Amazon Lightsail**；也可访问 [Lightsail 控制台](https://lightsail.aws.amazon.com/)。
-2. 点击 **Create instance / 创建实例**。
-3. 在创建页面检查 **Instance location / 实例位置**。即使之前控制台网址包含悉尼地区 `ap-southeast-2`，这里仍要重新选择目标地区。
+入口：[AWS 注册](https://signin.aws.amazon.com/signup?request_type=register)。本教程使用可自主选择地区的传统 / **advanced** 注册流程。若看到新的简化注册流程，先看 [AWS 注册方式对照](https://docs.aws.amazon.com/accounts/latest/reference/sign-up-for-aws.html)，选择支持完整服务与地区选择的入口。
 
-### 4.2 按下图选择参数
+**① 填邮箱和账号名称 → 验证邮箱。** 去邮箱取验证码，回页面填写。
 
-![创建实例时的关键选项示意](../outputs/aws-proxy-guide/assets/03-instance.svg)
+![AWS 注册：邮箱、账号名称、验证邮箱按钮（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-signup-01.jpg)
 
-| 页面项目 | 应选择什么 | 如何核对 |
-| --- | --- | --- |
-| Region / 地区 | Oregon / 俄勒冈 | 地区代码为 `us-west-2` |
-| Availability Zone / 可用区 | 可使用默认值 | 在所选 Oregon 地区内即可 |
-| Platform / 平台 | Linux/Unix | 不选 Windows |
-| Blueprint / 镜像类别 | OS Only / 仅操作系统 | 不选 Apps + OS |
-| Operating system | Ubuntu 24.04 LTS | 补丁版本号可不同 |
-| Networking / 网络 | 包含公网 IPv4 的方案，通常是 Dual-stack | 不选 IPv6-only |
-| Plan / 套餐 | 1 GB 内存、40 GB SSD、7 美元/月这一档 | 再核对创建页面的价格和流量 |
-| SSH key pair / 密钥对 | 使用／生成该地区默认 SSH 密钥 | 后面从账户 SSH keys 页面下载 |
-| Instance name | `personal-us-proxy` | 名称用于自己识别 |
+**② 设置登录密码 → 继续。** 保存到自己的密码管理器。
 
-不用添加启动脚本。无需为本次代理添加数据库、负载均衡器、额外磁盘或自动快照。
+![AWS 注册：设置密码（官方示例界面）](../outputs/aws-proxy-guide/assets/aws-signup-02.png)
 
-核对地区、价格后点击 **Create instance**，等待实例状态从 **Pending** 变成 **Running**。创建实例意味着开始占用计费资源，是否抵扣取决于账号权益。[官方实例创建说明](https://docs.aws.amazon.com/lightsail/latest/userguide/getting-started-with-amazon-lightsail.html)
+**③ 如果出现 Free / Paid 账号计划选择，先看费用说明。** 符合条件可选免费计划试用；免费计划有期限和服务限制。要转付费时再确认，不把“免费额度”理解成永久免费。
 
-### 4.3 创建并绑定 Static IP
+**④ 联系信息选 Personal / 个人，填写自己的真实信息。** 在中国就选 China，手机区号选 `+86`。美国服务器是在下一节选择，**这里不需要编一个美国地址或美国电话**。
 
-普通动态公网 IP 在停止再启动实例后可能变化。需要固定地址，就要绑定 Lightsail 静态 IP。[官方静态 IP 说明](https://docs.aws.amazon.com/lightsail/latest/userguide/lightsail-create-static-ip.html)
+![AWS 注册：联系信息（官方示例；图中默认美国，实际改成自己的国家和区号）](../outputs/aws-proxy-guide/assets/aws-signup-03.png)
 
-1. 在 Lightsail 导航中打开 **Networking / 网络**。
-2. 点击 **Create static IP / 创建静态 IP**。部分页面也可从实例的 Networking 页进入 **Attach static IP**。
-3. 地区选择 **Oregon / us-west-2**，必须与实例相同。
-4. 在 **Attach to an instance** 选择刚创建的 `personal-us-proxy`。
-5. 名称可填 `personal-us-proxy-ip`，点击创建并绑定。
-6. 回到实例详情，复制标记为 **Static IP / 静态 IP** 的公网 IPv4。
+**⑤ 填支付卡，账单地址与银行记录一致 → 完成银行验证。** 国家也按实际账单信息选择。
 
-把这个地址写入参数表，之后全文的 `YOUR_STATIC_IP` 都用它。不要复制 `172.16～172.31`、`10.x.x.x` 等内网地址，也不要继续使用绑定前的旧公网 IP。
+![AWS 注册：支付信息（官方示例界面）](../outputs/aws-proxy-guide/assets/aws-signup-04.png)
+
+**⑥ 完成手机身份验证。** 选择能接收验证码的号码，发送短信，填收到的验证码；若出现人机验证，按页面完成。
+
+![AWS 注册：填写收到的验证码（官方示例界面）](../outputs/aws-proxy-guide/assets/aws-signup-07.png)
+
+**⑦ 支持计划选 Basic / 免费基础支持 → 完成注册。** 它与服务器套餐、Free / Paid 账号计划不是同一项。收到激活邮件后再继续；激活有时需要等待。
+
+![AWS 注册：选择免费基础支持（官方历史示例，付费支持的名称和价格以现页面为准）](../outputs/aws-proxy-guide/assets/aws-signup-08.png)
+
+这些注册示例图来自 [AWS 官方入门教程](https://docs.aws.amazon.com/hands-on/latest/setup-environment/module-one.html)，部分仍是旧版界面，图中的“12 个月免费”等宣传不作为本教程的权益承诺。当前步骤以 [AWS 账号注册说明](https://docs.aws.amazon.com/accounts/latest/reference/getting-started.html) 和实际页面为准。注册成功后按提示保护账号并设置 MFA。
+
+**完成标志：** 收到账号激活邮件，能登录 [Lightsail 控制台](https://lightsail.aws.amazon.com/)。
+
+### 4.2 创建美国服务器
+
+**① 打开 [Lightsail](https://lightsail.aws.amazon.com/) → Instances / 实例 → Create instance / 创建实例。**
+
+**② 地区选 Oregon / 俄勒冈。** 不是这个地区，就点 **Change AWS Region and Availability Zone** 更改，确认代码 `us-west-2`。
+
+![Lightsail 创建实例：地区选择 Oregon（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-01-region.jpg)
+
+**③ 选择 Linux operating system → Ubuntu 24.04 LTS。** 旧版界面的对应入口是 **Linux/Unix → OS Only → Ubuntu**。
+
+![Lightsail 创建实例：选择纯 Linux 系统与 Ubuntu 24.04（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-02-ubuntu.jpg)
+
+**④ 选择 General purpose → Dual-stack → 7 美元/月。** 核对 **1 GB、2 vCPU、40 GB、2 TB**。Dual-stack 含本教程需要的公网 IPv4。
+
+![Lightsail 创建实例：双栈网络和七美元套餐（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-03-plan.jpg)
+
+**⑤ 名称填 `personal-us-proxy`，数量保持 1。** 自动快照先不勾选；展开 **Advanced settings**，SSH key 使用 **Default SSH key**，首次使用时按提示生成地区默认密钥。启动脚本留空。
+
+![Lightsail 创建实例：名称、数量、默认 SSH 密钥（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-04-name-key.jpg)
+
+**⑥ 核对地区、套餐和数量 → 点 Create instance。** 等实例状态变为 **Running**。创建会占用计费资源，是否抵扣取决于账号权益。
+
+![Lightsail 创建实例：页面底部的 Create instance 按钮（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-05-create.jpg)
+
+### 4.3 把服务器 IP 固定下来
+
+普通公网 IP 可能在停止、启动后变化，所以要绑定 **Static IP / 静态 IP**。
+
+1. Lightsail 左侧 **Networking → Create static IP**。
+2. 地区选 **Oregon / us-west-2**。
+3. **Attach to an instance** 选 `personal-us-proxy`。
+4. 名称填 `personal-us-proxy-ip` → **Create**。
+5. 回实例详情，复制 **Static IP address**。后面所有 `YOUR_STATIC_IP` 都替换成它。
+
+![静态 IP 已绑定时会显示 Attached to（AWS 官方示例图）](../outputs/aws-proxy-guide/assets/aws-06-static-ip.png)
+
+上图来自 [AWS 静态 IP 文档](https://docs.aws.amazon.com/lightsail/latest/userguide/lightsail-create-static-ip.html)，只看 **Attached to** 这个完成标志；本教程的地区是 Oregon，实例名是 `personal-us-proxy`。若出现“No instances available to attach to”，先确认实例与静态 IP 地区相同，以及实例是否已经绑定过静态 IP。
 
 ### 4.4 打开服务器终端
 
-新手先使用浏览器 SSH，不需要先研究本地 SSH 命令。
+进入实例 → **Connect → Connect using SSH**。会打开一个终端窗口，以后标注“服务器终端”的命令都粘贴到这里。
 
-1. 打开实例详情 → **Connect / 连接**。
-2. 点击 **Connect using SSH / 使用 SSH 连接**。
-3. 等待终端出现类似 `ubuntu@ip-…:~$` 的提示符。
-4. 输入下面命令，按回车：
+![Lightsail：点击 Connect using SSH 打开服务器终端（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-08-connect.jpg)
 
-```bash
-whoami
+输入 `whoami` 并回车，应显示 `ubuntu`。
+
+**完成标志：** 美国实例 Running、静态 IP 已绑定、浏览器 SSH 能执行命令。
+
+<a id="step-5"></a>
+## 5. 设置代理：服务器 → Mac → iPhone
+
+最终连接关系如下。手机独立连接，**Mac 关机后手机仍能使用**。
+
+```text
+Claude / Anthropic / api4.ipify.org
+    ↓
+Mac 的 Clash Verge 或 iPhone 的 Shadowrocket
+    ↓
+你选中的订阅中转节点（美国、日本、香港等任选一条可用线路）
+    ↓
+美国 AWS：固定 IP + sing-box / Shadowsocks
+    ↓
+目标网站看到 AWS 的固定 IP
+
+其他网站 → 原来的分流规则 → 普通节点或直接连接
 ```
 
-通常显示 `ubuntu`。后面标注“服务器终端”的代码，都粘贴到这里执行。不要复制代码块外的提示符或解释文字。
+### 5.1 服务器：安装 sing-box
 
-如果终端打不开，先确认实例 Running、账号激活完成，以及 Networking 页的 SSH TCP 22 规则允许浏览器 SSH 连接。此时还没安装代理，不能从 Shadowrocket 判断原因。
+**操作位置：刚打开的 AWS 浏览器 SSH 终端。** 每次复制一个完整代码块，回车，等执行结束再继续；出现错误时先停在该步排查。
 
-**完成标志：**实例 Running、静态 IP 已绑定、浏览器 SSH 能执行 `whoami`。
-
-## 5. 在服务器安装 sing-box
-
-### 5.1 安装基础工具
-
-操作位置：**AWS 实例的浏览器 SSH 终端**。
-
-逐块执行。出现下载失败、权限错误或安装报错时，先处理这一块，不继续往下粘贴。
+**① 安装基础工具，再添加 sing-box 官方软件源。**
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y curl ca-certificates nano
-```
-
-`sudo` 表示用管理员权限执行；这里修改的是云服务器，不是你的 Mac。
-
-### 5.2 添加官方软件源并安装
-
-先下载软件源签名文件：
-
-```bash
 sudo mkdir -p /etc/apt/keyrings
 sudo curl -fsSL https://sing-box.app/gpg.key -o /etc/apt/keyrings/sagernet.asc
 sudo chmod a+r /etc/apt/keyrings/sagernet.asc
 ```
 
-再完整复制下面一块，包括第一行和最后单独一行的 `EOF`：
+下面这块从第一行复制到最后的 `EOF_APT`：
 
 ```bash
-sudo tee /etc/apt/sources.list.d/sagernet.sources > /dev/null <<'EOF'
+sudo tee /etc/apt/sources.list.d/sagernet.sources > /dev/null <<'EOF_APT'
 Types: deb
 URIs: https://deb.sagernet.org/
 Suites: *
 Components: *
 Enabled: yes
 Signed-By: /etc/apt/keyrings/sagernet.asc
-EOF
+EOF_APT
 ```
-
-安装稳定版：
 
 ```bash
 sudo apt-get update
@@ -232,36 +226,34 @@ sudo apt-get install -y sing-box
 sing-box version
 ```
 
-看到版本号表示程序已安装。本次实测版本是 1.14.3，之后官方稳定版可能更新；若新版不接受后面的字段，先查看官方说明，不随意删除安全相关设置。[官方 APT 安装与服务管理说明](https://sing-box.sagernet.org/installation/package-manager/)
+看到版本号即可。本次使用 1.14.3，官方稳定版之后可能更新。[官方安装说明](https://sing-box.sagernet.org/installation/package-manager/)
 
-### 5.3 生成自己的代理密钥
+**② 生成代理密码。**
 
 ```bash
 sing-box generate rand --base64 16
 ```
 
-终端会显示一串随机字符。**完整复制并保存这一行，包括末尾的 `=`。** 它是下面配置中的 `YOUR_SS_KEY`，不是 AWS 登录密码，也不是 SSH 私钥文件。
+把输出的整行保存好，包括末尾 `=`。它就是后面的 `YOUR_SS_KEY`，电脑、手机与服务器都要用同一串。不要改成自己随手编的短密码。[算法与密钥要求](https://sing-box.sagernet.org/configuration/inbound/shadowsocks/)
 
-算法 `2022-blake3-aes-128-gcm` 要求 16 字节随机密钥的 Base64 表示，不能随便填一个自定义短密码。不要多次生成后混用不同结果；服务器、电脑、手机必须用同一串。[sing-box Shadowsocks 配置说明](https://sing-box.sagernet.org/configuration/inbound/shadowsocks/)
+| 后面反复用到的参数 | 你要填写的内容 |
+| --- | --- |
+| `YOUR_STATIC_IP` | 刚绑定的 AWS 静态公网 IPv4 |
+| 端口 | `24443` |
+| 算法 / 加密方式 | `2022-blake3-aes-128-gcm` |
+| `YOUR_SS_KEY` | 刚生成的整行随机密码 |
 
-### 5.4 写入服务端配置
-
-本步骤用于本教程的新实例。如果服务器已运行其他代理配置，先备份并合并，不能直接覆盖。
-
-打开配置文件：
+**③ 写入配置。** 以下用于本教程新建的服务器；已有 sing-box 配置时先备份，不要覆盖其他服务。
 
 ```bash
 sudo nano /etc/sing-box/config.json
 ```
 
-如果文件已有示例内容，将光标移到开头，用 **Control+K** 逐行剪掉旧内容，直到为空。这里是键盘 `Control` 键，不是 Mac 的 `Command` 键。随后粘贴下面完整 JSON，并把 `YOUR_SS_KEY` 替换为刚生成的密钥，保留两边英文双引号。
+用 **Control+K** 清掉原有示例行，粘贴下面内容，仅把 `YOUR_SS_KEY` 换成自己的密码，保留英文双引号。
 
 ```json
 {
-  "log": {
-    "level": "warn",
-    "timestamp": true
-  },
+  "log": { "level": "warn", "timestamp": true },
   "inbounds": [
     {
       "type": "shadowsocks",
@@ -272,44 +264,25 @@ sudo nano /etc/sing-box/config.json
       "password": "YOUR_SS_KEY"
     }
   ],
-  "outbounds": [
-    {
-      "type": "direct",
-      "tag": "direct"
-    }
-  ]
+  "outbounds": [ { "type": "direct", "tag": "direct" } ]
 }
 ```
 
-保存与退出顺序：**Control+O → 回车确认文件名 → Control+X**。不要使用中文引号，不要多加逗号。
+保存：**Control+O → 回车 → Control+X**。这里按的是 Control，不是 Command。
 
-`0.0.0.0` 表示服务器监听所有 IPv4 网卡；它不是客户端要填写的服务器地址。未指定 `network` 时，Shadowsocks 入站同时支持 TCP 和 UDP。
-
-### 5.5 校验、权限与开机启动
-
-先检查配置：
+**④ 检查并启动。**
 
 ```bash
 sudo sing-box check -c /etc/sing-box/config.json
+systemctl show sing-box -p User
 ```
 
-成功时通常没有错误输出，终端回到提示符。若提示 JSON 格式或密钥长度错误，回到上一步修正，**不要先重启服务碰运气**。
-
-本教程使用的官方 Ubuntu 包以 `sing-box` 系统用户运行。确认并设置该用户可读的权限：
+第一条应无报错；本教程官方 Ubuntu 包第二条显示 `User=sing-box`。确认后执行：
 
 ```bash
-systemctl show sing-box -p User
-getent passwd sing-box
 sudo chown root:sing-box /etc/sing-box /etc/sing-box/config.json
 sudo chmod 750 /etc/sing-box
 sudo chmod 640 /etc/sing-box/config.json
-```
-
-应看到 `User=sing-box`，以及该系统用户的记录。如果使用了不同来源的软件包且没有此用户，先核对软件包和服务运行身份，不要照搬 `chown`。
-
-启用开机启动，并让服务读取新配置：
-
-```bash
 sudo systemctl enable sing-box
 sudo systemctl restart sing-box
 sudo systemctl is-active sing-box
@@ -317,527 +290,277 @@ sudo systemctl is-enabled sing-box
 sudo ss -lntu 'sport = :24443'
 ```
 
-预期分别看到 `active`、`enabled`，以及端口 `24443` 的 TCP 和 UDP 监听记录。失败时查看：
+应看到 **active、enabled，以及 TCP / UDP 24443 的监听记录**。如果服务用户不同或检查失败，先核对安装来源及错误，不继续粘贴。失败日志用下面这条查看：
 
 ```bash
 sudo journalctl -u sing-box --since '10 minutes ago' --no-pager -n 50
 ```
 
-**完成标志：**配置检查通过、服务 active、开机启动 enabled、端口监听存在。此时只是服务器内部准备好了，外网还需要下一步放行。
+### 5.2 服务器：放行 24443 端口
 
-### 5.6 在 Lightsail 放行代理端口
+回到 **Lightsail 实例 → Networking → Firewall rules → Add rule**。旧版页面叫 **IPv4 firewall**。
 
-操作位置：**电脑浏览器中的 Lightsail 实例详情 → Networking**。
+分别添加两条：
 
-![防火墙规则和客户端端口的对应关系](../outputs/aws-proxy-guide/assets/04-firewall.svg)
-
-在 **IPv4 firewall / IPv4 防火墙** 中点击 **Add rule / 添加规则**，分别添加：
-
-| Application / 应用 | Protocol / 协议 | Port / 端口 | Source / 来源 |
+| Application | Protocol | Port | Source / Preset |
 | --- | --- | --- | --- |
-| Custom / 自定义 | TCP | `24443` | Any IPv4 / 任意 IPv4，或 `0.0.0.0/0` |
-| Custom / 自定义 | UDP | `24443` | Any IPv4 / 任意 IPv4，或 `0.0.0.0/0` |
+| Custom | TCP | `24443` | Anywhere IPv4，`0.0.0.0/0` |
+| Custom | UDP | `24443` | Anywhere IPv4，`0.0.0.0/0` |
 
-每条都点击保存，最后确认规则列表里有两条。手机蜂窝公网地址会变化，所以本方案允许任意 IPv4 发起连接，再由 Shadowsocks 密钥认证；这意味着端口公开可达，密钥必须保密。
+![防火墙填写参考：Custom、TCP、24443、Anywhere IPv4（已保存规则的编辑界面实截）](../outputs/aws-proxy-guide/assets/aws-07-firewall-form.jpg)
 
-保留可用的 SSH TCP 22 管理入口。对于只运行本代理的新实例，不需要 HTTP TCP 80 规则，可以删除这条未使用规则。以后收紧 SSH 来源时，先确保自己的管理入口仍然可用。IPv6 防火墙与 IPv4 独立；本教程客户端使用 IPv4，不需要为代理额外开放 IPv6。[Lightsail 防火墙说明](https://docs.aws.amazon.com/lightsail/latest/userguide/understanding-firewall-and-port-mappings-in-amazon-lightsail.html)
+新建时点 **Add rule / Create** 保存；上图是已存在规则的编辑页，所以底部叫 Update rule。旧版页面若用“Restrict to IP address”复选框，不勾选即允许任意 IPv4。
 
-再回到**服务器终端**执行：
+![完成标志：规则列表中同时出现 TCP 24443 和 UDP 24443（当前界面实截）](../outputs/aws-proxy-guide/assets/aws-07-firewall-result.jpg)
 
-```bash
-sudo ufw status
-```
+这两个端口允许公网连接，由代理密码认证。保留 SSH 22 管理入口；截图里的 HTTP 80 是默认规则，本代理不依赖它。无需额外开放代理的 IPv6 端口。[官方防火墙操作说明](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-editing-firewall-rules.html)
 
-- 若显示 `inactive`，不用为本教程额外启用 UFW。
-- 若显示 `active`，还要在操作系统防火墙放行代理端口：
+在**服务器终端**执行 `sudo ufw status`：显示 `inactive` 就继续；若为 `active`，再执行：
 
 ```bash
 sudo ufw allow 24443/tcp
 sudo ufw allow 24443/udp
-sudo ufw status
 ```
 
-**完成标志：**云防火墙规则已保存；若启用了 UFW，它也允许两个协议的 `24443`。
+**完成标志：** sing-box 正常运行，云端及已启用的系统防火墙都允许 TCP / UDP 24443。
 
-## 6. 电脑配置 Clash Verge Rev
+### 5.3 Mac：只让指定网站经中转走 AWS
 
-### 6.1 安装并选择操作路径
+**操作位置：Mac 的 Clash Verge。** 使用第 2 步已启用的订阅，保留它原来的国内外分流规则。
 
-操作位置：**Mac**。
+**① 记下一个能用的中转节点名称。** 在代理列表复制完整名称，包含旗帜、空格和后缀。可以准备美国、日本、香港三条候选线路，但每次实际只选一条。
 
-打开官方 DMG，将 Clash Verge 拖入 Applications／应用程序，然后启动。按系统提示授予必要权限。若已经安装，可以直接继续。
+**② 打开 订阅 → 右键当前订阅卡片 → 扩展脚本。** 这是订阅自己的扩展脚本，不是“编辑文件”或“编辑规则”。先保存原脚本备份；如果原脚本已有自己的业务逻辑，需要合并，不能直接覆盖。
 
-选一条路径即可：
-
-- **从未配置过，或者想先独立验证 AWS：走 6.2 的独立配置。** 不需要购买其他代理订阅。
-- **已经有可用订阅和国内外分流规则，希望保留：走 6.3 的扩展脚本。** 本次实际电脑采用这条路径。
-
-### 6.2 路径 A：创建一个独立 AWS 配置
-
-1. 打开 Clash Verge 的 **订阅／Profiles** 页面。
-2. 点击 **新建**，选择本地配置（Local），名称填 `AWS 独立配置`。不同版本若提供“导入本地文件”，也可将下方内容保存成 UTF-8 纯文本 `aws-proxy.yaml` 后导入。
-3. 打开该配置的编辑入口，粘贴以下内容。
-4. 替换两个位置的 `YOUR_STATIC_IP` 和一处 `YOUR_SS_KEY`。YAML 缩进使用空格，不使用 Tab。
-
-```yaml
-mixed-port: 7897
-allow-lan: false
-mode: rule
-log-level: info
-ipv6: false
-
-proxies:
-  - name: AWS-US
-    type: ss
-    server: YOUR_STATIC_IP
-    port: 24443
-    cipher: 2022-blake3-aes-128-gcm
-    password: "YOUR_SS_KEY"
-    udp: true
-    dialer-proxy: DIRECT
-
-proxy-groups:
-  - name: AWS-ROUTE
-    type: select
-    proxies:
-      - AWS-US
-      - DIRECT
-
-dns:
-  enable: true
-  listen: 127.0.0.1:1053
-  ipv6: false
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter:
-    - "*.lan"
-    - "*.local"
-  nameserver:
-    - "https://1.1.1.1/dns-query#AWS-US"
-
-rules:
-  - IP-CIDR,YOUR_STATIC_IP/32,DIRECT,no-resolve
-  - DOMAIN-SUFFIX,local,DIRECT
-  - DOMAIN-SUFFIX,lan,DIRECT
-  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
-  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-  - MATCH,AWS-ROUTE
-```
-
-5. 保存，选中／启用这张本地配置卡片，确认没有配置错误。
-6. 打开 **代理／Proxies** 页面，在 `AWS-ROUTE` 中选中 **AWS-US**，不要选 DIRECT。
-7. 模式使用 **规则／Rule**，开启 **系统代理**。
-8. 在设置中检查 **混合端口／Mixed Port**，以下测试默认使用 `7897`。Clash Verge 的应用设置可能覆盖文件中的端口、DNS 等字段；如果端口不同，以实际设置为准并修改测试命令。如果启用了全局 DNS 覆写，测试此配置时应关闭该覆写或确认最终配置保留了上面的 DNS。
-
-这份基础配置会让被客户端接管的普通公网访问默认走 AWS，**还不是完整的国内外自动分流配置**。它不依赖远程规则库，适合先验证链路。`dialer-proxy: DIRECT` 表示直接连接 AWS；DNS 示例把查询经 AWS 发到 DoH 服务，节点本身使用数字 IP，避免为节点解析域名时循环依赖。[Mihomo Shadowsocks 配置](https://wiki.metacubex.one/config/proxies/ss/)、[DNS 附加参数](https://wiki.metacubex.one/config/dns/)
-
-### 6.3 路径 B：给现有订阅加入 AWS 节点
-
-操作前，从订阅卡片打开配置目录或导出功能，备份现有配置和已有扩展脚本。不要将下面代码直接覆盖到承载其他功能的脚本上；已有脚本应合并逻辑。
-
-1. 在 **代理** 页找到控制日常国外流量的主选择组，记下完整名称。本次环境名称是 `🔰 选择节点`，你的可能不同。
-2. 回到 **订阅** 页，右键当前使用的订阅卡片，进入 **编辑扩展脚本／Script**。优先使用该订阅的扩展，避免影响其他配置。
-3. 如果原脚本只是空的 `main` 模板，可替换为下方内容。
-4. 替换 IP、密钥和 `GROUP_NAME`，其中组名要与第 1 步完全相同。
+**③ 粘贴下面脚本。只需改开头三项：IP、密码、中转节点列表。** 至少填一个真实存在的中转节点；其余候选可以删除整行。后面的规则直接保留。
 
 ```javascript
 function main(config) {
-  const GROUP_NAME = "🔰 选择节点";
-  const node = {
-    name: "AWS-US",
-    type: "ss",
-    server: "YOUR_STATIC_IP",
-    port: 24443,
-    cipher: "2022-blake3-aes-128-gcm",
-    password: "YOUR_SS_KEY",
-    udp: true,
-    "dialer-proxy": "DIRECT"
-  };
+  // 只改这里：自己的静态 IP、密码、订阅中真实存在的节点名称。
+  const server = "YOUR_STATIC_IP";
+  const password = "YOUR_SS_KEY";
+  const relayCandidates = [
+    "🇺🇲 美国Z02 | IEPL | x1.5",
+    "🇭🇰 香港Z02 | IEPL",
+    "🇯🇵 日本Z01 | IEPL"
+  ];
 
-  const group = (config["proxy-groups"] || [])
-    .find(item => item.name === GROUP_NAME);
-  if (!group) {
-    throw new Error("找不到代理组，请核对 GROUP_NAME：" + GROUP_NAME);
+  const awsName = "Claude 专用 AWS";
+  const relayGroup = "🚀 AWS 中转";
+  const claudeGroup = "🤖 Claude / Anthropic";
+  if (server === "YOUR_STATIC_IP" || password === "YOUR_SS_KEY") {
+    throw new Error("请先填写自己的 AWS 静态 IP 和代理密码");
   }
-  if (group.type !== "select") {
-    throw new Error("请选择手动选择组，避免自动测速切换出口");
+  const proxies = (config.proxies || []).filter(p => p.name !== awsName);
+  const names = new Set(proxies.map(p => p.name));
+  const relays = relayCandidates.filter(n => names.has(n));
+  if (!relays.length) {
+    throw new Error("找不到中转节点，请复制订阅中的完整节点名称");
   }
-
-  config.proxies = (config.proxies || [])
-    .filter(item => item.name !== node.name)
-    .concat([node]);
-  group.proxies = [node.name].concat(
-    (group.proxies || []).filter(name => name !== node.name)
+  config.proxies = proxies.concat([{
+    name: awsName, type: "ss", server, port: 24443,
+    cipher: "2022-blake3-aes-128-gcm", password, udp: true,
+    "dialer-proxy": relayGroup
+  }]);
+  config["proxy-groups"] = (config["proxy-groups"] || [])
+    .filter(g => g.name !== relayGroup && g.name !== claudeGroup);
+  // AWS 只放到 Claude 专用组，不加入日常的选择组。
+  for (const group of config["proxy-groups"]) {
+    if (group.proxies) group.proxies = group.proxies.filter(n => n !== awsName);
+    if ((group["include-all"] || group["include-all-proxies"])
+        && !(group["exclude-filter"] || "").includes("^Claude 专用 AWS$")) {
+      const oldFilter = group["exclude-filter"];
+      group["exclude-filter"] = oldFilter
+        ? "(" + oldFilter + ")|^Claude 专用 AWS$" : "^Claude 专用 AWS$";
+    }
+  }
+  config["proxy-groups"].push(
+    { name: relayGroup, type: "select", proxies: relays },
+    { name: claudeGroup, type: "select", proxies: [awsName] }
   );
-
-  const directRule = "IP-CIDR," + node.server + "/32,DIRECT,no-resolve";
-  config.rules = [directRule].concat(
-    (config.rules || []).filter(rule => rule !== directRule)
-  );
+  const domains = [
+    "anthropic.com", "claude.ai", "claude.com",
+    "claudeusercontent.com", "claude.app", "claudemcpcontent.com"
+  ];
+  const additions = domains.map(d => "DOMAIN-SUFFIX," + d + "," + claudeGroup);
+  additions.push("DOMAIN,api4.ipify.org," + claudeGroup);
+  additions.push("IP-CIDR," + server + "/32,DIRECT,no-resolve");
+  const managed = new Set(additions.map(r => r.split(",").slice(0, 2).join(",")));
+  config.rules = additions.concat((config.rules || []).filter(r =>
+    !managed.has(r.split(",").slice(0, 2).join(","))
+  ));
   return config;
 }
 ```
 
-5. 保存并重新应用当前订阅，确认脚本没有报错。
-6. 在主选择组里手动选中 **AWS-US**；新增节点排在第一位，不代表运行中的选择一定已经改变。
-7. 若有 AI、流媒体等单独分组，也检查它们是否跟随主组。某个分组固定选择其他节点时，该组流量仍会走其他节点。
+这是在订阅原配置上添加专用节点、两组和优先规则；其他规则及其顺序保留。中转依赖 Mihomo 的 [dialer-proxy](https://wiki.metacubex.one/config/proxies/dialer-proxy/)，扩展脚本的入口见 [Clash Verge 官方说明](https://www.clashverge.dev/guide/script.html)。本例适用于包含 `proxies` 节点列表的常见订阅；只有 `proxy-providers` 的订阅需要按其结构另行调整。
 
-订阅更新时，扩展脚本会重新应用，减少手工修改订阅原文被覆盖的问题。菜单和执行优先级可对照 [Clash Verge 扩展配置说明](https://www.clashverge.dev/guide/extend.html)。
+**④ 保存 → 订阅页点“重新激活订阅” → 去代理页确认。**
 
-![Clash 中配置、策略组和流量接管的三层关系](../outputs/aws-proxy-guide/assets/05-clash.svg)
-
-### 6.4 系统代理、TUN、规则模式怎么选
-
-| 设置 | 控制什么 | 本教程建议 |
-| --- | --- | --- |
-| 系统代理 | 让遵循系统代理的浏览器和应用通过 Clash | 初次浏览器测试先开启 |
-| TUN / 虚拟网卡 | 接管更多不使用系统代理的程序流量 | 需要终端或更多应用时开启；按提示安装／启用服务模式 |
-| 规则 / Rule | 根据规则选择直连或某个代理组 | 日常使用 |
-| 全局 / Global | 被接管的流量按全局组出口发送 | 临时排查分流问题；仍要选择全局组里的 AWS |
-| 直连 / Direct | 被接管的流量直接连接 | 不用于验证 AWS 出口 |
-
-“规则模式”不等于自动知道哪些网站在国内，效果取决于配置里的规则。系统代理也不保证所有程序都遵守。[Clash Verge 官方快速入门](https://www.clashverge.dev/guide/quickstart.html)
-
-路径 A 若只想让几个国内站点直连，可在最后的 `MATCH,AWS-ROUTE` **之前**增加自己的域名规则，例如：
-
-```yaml
-  - DOMAIN-SUFFIX,baidu.com,DIRECT
-  - DOMAIN-SUFFIX,qq.com,DIRECT
-  - DOMAIN-SUFFIX,taobao.com,DIRECT
-```
-
-这些只是举例，不能覆盖所有国内网站及其 CDN。需要完整国内外分流时，优先采用自己已验证的规则配置并走路径 B；修改后在“连接”页核对真实命中规则。
-
-### 6.5 先在电脑上验收
-
-操作位置：**Mac 的“终端”应用**。可按 Command+空格，搜索 Terminal／终端打开。
-
-```bash
-curl --noproxy '' --proxy http://127.0.0.1:7897 --max-time 20 https://api4.ipify.org
-```
-
-输出应与 `YOUR_STATIC_IP` 完全相同。若没有换行，IP 后面紧跟终端提示符也正常。
-
-再验证一个 HTTPS 网站：
-
-```bash
-curl --noproxy '' --proxy http://127.0.0.1:7897 --max-time 20 \
-  -o /dev/null -sS -w 'HTTP=%{http_code} TLS=%{ssl_verify_result}\n' \
-  https://www.apple.com/
-```
-
-通常应得到 HTTP 200 和 `TLS=0`。可用的 HTTP 响应说明请求已到网站；`TLS=0` 表示此次证书验证通过。
-
-然后用浏览器打开 [出口 IP 检测](https://api4.ipify.org/)，确认浏览器也显示同一地址。显式指定代理的 curl 成功，只能证明这条测试请求走代理，不能代替浏览器测试。
-
-打开 Clash 的 **连接／Connections** 页，找到刚访问的域名，检查链路里包含 `AWS-US`。如果显示其他国家节点，回到相应策略组修改。
-
-**其他代理还要开吗？** 直接连接 AWS 成功后，不需要其他节点中转。Clash Verge 客户端仍须运行；原订阅可保留作规则来源或备用。若扩展脚本附着在原订阅上，也要继续启用那份配置，它和“正在使用原订阅的其他节点”不是同一回事。
-
-**完成标志：**电脑测试出口等于自己的静态 IP、HTTPS 正常、Clash 连接链路指向 AWS。
-
-## 7. iPhone 配置 Shadowrocket
-
-### 7.1 第一次先手动添加
-
-操作位置：**iPhone → Shadowrocket**。
-
-1. 打开首页，点击添加节点的 **＋**。
-2. 类型选择 **Shadowsocks**，不要选 ShadowsocksR、SOCKS5 或 HTTPS。
-3. 按下表填写。可从自己的密码管理器复制密钥，避免手输出错。
-
-![Shadowrocket 节点编辑字段示意](../outputs/aws-proxy-guide/assets/06-shadowrocket.svg)
-
-| 手机字段 | 填写内容 |
+| 位置 | 应选什么 |
 | --- | --- |
-| 类型 | Shadowsocks |
-| 地址 | 自己的静态公网 IPv4，即 `YOUR_STATIC_IP` |
+| 模式 | **规则** |
+| 日常选择组，如“🔰 选择节点” | 平时使用的普通节点 |
+| “🚀 AWS 中转” | 美国、日本、香港候选中的一条可用线路 |
+| “🤖 Claude / Anthropic” | **Claude 专用 AWS** |
+
+![Clash Verge：普通选择组、AWS 中转组和 Claude 专用组（当前界面实截）](../outputs/aws-proxy-guide/assets/clash-01-groups.png)
+
+切换“🚀 AWS 中转”只改变去 AWS 的路径，最终出口仍是自己的 AWS IP。不要把日常选择组切到 AWS，也不要切“全局”模式。
+
+**⑤ 在左侧“规则”页搜索 `claude.com`、`api4.ipify.org`。** 应看到指向 **🤖 Claude / Anthropic** 的规则。扩展脚本的结果在运行时生效，所以在原始订阅文本里搜不到，不代表没有配置。
+
+**完成标志：** 新增两组可见，规则能搜到，Clash 没有脚本报错。第 6 步再测真实出口。
+
+### 5.4 iPhone：Shadowrocket 使用相同链路
+
+**① 先导入普通订阅。** 在订阅服务的手机页面复制 **Shadowrocket 订阅链接**，使用“一键导入 Shadowrocket”，或在 Shadowrocket 首页 **＋ → 类型 Subscribe / 订阅 → URL** 粘贴并保存。确认普通节点能连接。
+
+**② 手动添加 AWS 节点。** Shadowrocket 首页点 **＋**，按表填写：
+
+| 手机界面里的项目 | 填什么 |
+| --- | --- |
+| 类型 | **Shadowsocks** |
+| 地址 | 自己的 `YOUR_STATIC_IP` |
 | 端口 | `24443` |
-| 密码 | 第 5.3 节生成的完整密钥 |
-| 算法 | `2022-blake3-aes-128-gcm` |
-| 混淆 | `none` |
-| 插件 | `none` |
-| 一次性认证 | 关闭 |
-| UDP Over TCP | 关闭，服务端未配置这一扩展 |
-| TCP 快速打开 | 初次测试保持关闭 |
+| 密码 | 自己的 `YOUR_SS_KEY`，不要漏掉末尾 `=` |
+| **算法** | **2022-blake3-aes-128-gcm**；这就是“加密方式” |
+| 混淆、插件 | 都是 `none` |
+| 一次性认证、UDP Over TCP | 关闭 |
 | UDP 转发 | 开启 |
-| 代理通过 | 留空，不选择其他节点 |
-| 备注 | `AWS-US` |
+| 备注 | **AWS-US-Compatible**，后面的规则用这个名字 |
 
-**“算法”就是加密方式。** `aes-128-gcm` 和 `2022-blake3-aes-128-gcm` 是不同算法，不能互换。若列表没有完整算法，先更新 Shadowrocket；不要随便选一个近似名称。
+填好点 **保存**。如果用二维码导入，也要进节点详情核对密码和算法非空；本次曾遇到 SS2022 链接导入后这两项为空，导致 Safari 无法连接。
 
-4. 点右上角 **保存**。
-5. 回到首页，点选 **AWS-US**，确认选中标记在它旁边。
-6. 将 **全局路由** 暂时设为 **代理**，便于排除分流干扰。
-7. 打开顶部连接开关，第一次按 iOS 提示允许添加 VPN 配置，完成系统要求的验证。
+**③ 给 AWS 节点设置“代理通过”。**
 
-### 7.2 在手机上验证
+1. 首页找到 **AWS-US-Compatible**，点右侧 **ⓘ**。
+2. 点 **代理通过**，选择订阅里的可用中转节点，例如美国 Z02。
+3. 返回并保存。这个中转节点本身不要再通过 AWS，避免形成循环。
 
-1. 用 Safari 打开 [https://api4.ipify.org/](https://api4.ipify.org/)。
-2. 确认显示自己服务器的静态 IP。
-3. 再打开 [Apple](https://www.apple.com/) 或其他 HTTPS 网站。
-4. 分别在 Wi-Fi、蜂窝网络下测试一次。切换网络后可关闭再打开 Shadowrocket 连接，避免旧连接影响判断。
+此时链路为：**iPhone → 选中的中转节点 → AWS → 网站**。
 
-VPN 图标或开关打开只表示系统接管已启用，不代表服务器认证一定成功。节点延迟数字也不能替代出口 IP 验证。
+**④ 添加七条分流规则。**
 
-初次测试成功后，可以把“全局路由”切回“配置”进行分流，但前提是已经选用了合适的规则配置。新装 App 没有验证过分流规则时，先不要假定国内流量一定直连。
+1. 底部 **配置** → 找到当前使用的配置。新安装可用内置 `default.conf`。
+2. 先导出一份备份；若使用远程配置，先复制为本地配置，例如 `Claude-AWS.conf`，避免远程更新覆盖自己的修改。
+3. 点配置的 **ⓘ → 规则 → ＋**，按下表逐条添加，策略选择节点 **AWS-US-Compatible**。
+4. 把这七条放在已有普通分流规则之前，保留其他原有规则。
 
-### 7.3 扫码导入为什么仍要核对
+| 类型 | 内容 | 策略 |
+| --- | --- | --- |
+| DOMAIN-SUFFIX / 域名后缀 | `anthropic.com` | AWS-US-Compatible |
+| DOMAIN-SUFFIX / 域名后缀 | `claude.ai` | AWS-US-Compatible |
+| DOMAIN-SUFFIX / 域名后缀 | `claude.com` | AWS-US-Compatible |
+| DOMAIN-SUFFIX / 域名后缀 | `claudeusercontent.com` | AWS-US-Compatible |
+| DOMAIN-SUFFIX / 域名后缀 | `claude.app` | AWS-US-Compatible |
+| DOMAIN-SUFFIX / 域名后缀 | `claudemcpcontent.com` | AWS-US-Compatible |
+| DOMAIN / 域名 | `api4.ipify.org` | AWS-US-Compatible |
 
-节点可以通过 `ss://` 链接或二维码分享。**先手动配置成功，再用 Shadowrocket 的“分享节点”生成二维码供自己的其他设备导入，是更容易核对的路径。** 分享内容包含密钥。
+更习惯复制文本的话，点配置 → **编辑纯文本**，在已有 `[Rule]` 行的紧下方粘贴以下七行。**不要覆盖整份配置，也不要重复添加 `[Rule]`。** 两种方式选一种即可。
 
-本次实测曾遇到：扫码后地址和端口正确，但密码显示“必填”，算法一栏为空，随后 Safari 提示无法建立安全连接。服务器同时出现认证失败日志。这说明“生成了二维码、扫出了节点”并不能证明字段完整。
+```ini
+DOMAIN-SUFFIX,anthropic.com,AWS-US-Compatible
+DOMAIN-SUFFIX,claude.ai,AWS-US-Compatible
+DOMAIN-SUFFIX,claude.com,AWS-US-Compatible
+DOMAIN-SUFFIX,claudeusercontent.com,AWS-US-Compatible
+DOMAIN-SUFFIX,claude.app,AWS-US-Compatible
+DOMAIN-SUFFIX,claudemcpcontent.com,AWS-US-Compatible
+DOMAIN,api4.ipify.org,AWS-US-Compatible
+```
 
-Shadowsocks 2022 的标准链接要求特定的用户信息编码方式；不同客户端版本的解析兼容性可能有差异。本次更换编码后尚未收到手机重测成功反馈，不能把替代格式写成已证实的通用解决方案。[官方 SIP002 链接格式](https://shadowsocks.org/doc/sip002.html)
+如果已安装包含同样七条规则的 `Claude-AWS-Only` 模块，启用模块即可，不用重复添加；有其他模块时检查是否抢先匹配这些域名。模块优先于基础配置。菜单与规则说明可参考 [Shadowrocket 社区使用手册](https://github.com/LOWERTOP/Shadowrocket/wiki)。
 
-如果导入后密码或算法为空，直接按 7.1 手动补齐，再保存、重连。无需因为这一现象立即重装服务器或修改 Safari 的证书校验。
+**⑤ 启用配置并重连。**
 
-**完成标志：**手机独立显示自己的 AWS 静态 IP，且 HTTPS 页面可打开。
+- 在 **配置** 页点修改后的文件 → **使用配置**，确认出现选中标记。
+- 首页的 **全局路由选“配置”**。
+- 首页选择平时使用的普通节点，保持 AWS 节点中的“代理通过”设置。
+- 打开顶部连接开关；首次按 iOS 提示允许添加 VPN 配置。已连接则关闭再打开。
 
-## 8. 怎样判断“整个方案已经成功”
+**完成标志：** AWS 节点的密码和算法正确，“代理通过”已选中转节点，七条规则已启用，全局路由为“配置”。
 
-![从服务监听到应用权限的分层验收图](../outputs/aws-proxy-guide/assets/07-validation.svg)
+> 扫码可以减少填写，但节点二维码通常只包含节点，不能自动完成中转关系和全部分流规则。分享给自己时可以用 AirDrop，或同一 Wi-Fi 内的临时配置页面；导入后仍核对上述三项。不要把含密码的二维码放进公开教程。
 
-按顺序验收，不跳过前面的层次：
+<a id="step-6"></a>
+## 6. 打开 IP 检测网站，验证是否成功
 
-| 层次 | 检查方法 | 能证明什么 | 不能证明什么 |
-| --- | --- | --- | --- |
-| 服务 | `systemctl is-active`、`ss -lntu` | 程序运行、端口监听 | 手机一定可连 |
-| 网络与认证 | 客户端请求成功、服务端无对应认证错误 | 当前网络与节点参数可用 | 所有运营商都稳定 |
-| 出口 | 在每台设备打开 IP 检测页 | 该次请求出口是 AWS | 所有应用都已走 AWS |
-| HTTPS | 访问正常 HTTPS 网站 | 该次 TLS 与网页连接正常 | 某个平台账号权限正常 |
-| 目标应用 | 用自己的账号完成一次实际功能请求 | 该应用在当前账号下可用 | 以后永远不触发平台限制 |
+### 6.1 电脑和手机分别测一次
 
-若要测试 Claude Code，可先启用 Clash TUN，或在**启动 Claude Code 的同一个 Mac 终端窗口**设置代理环境变量：
+1. 从 Lightsail 实例详情复制自己的 **Static IP address**。
+2. Mac 保持 Clash **规则模式**，浏览器打开 **[https://api4.ipify.org](https://api4.ipify.org/)**。
+3. iPhone 保持 Shadowrocket **全局路由＝配置**，Safari 打开同一个链接。
+4. 两边显示的 IP 都应与第 1 步完全一致。
+5. 再关闭 Mac 上的代理，单独用 iPhone 蜂窝网络重测一次；手机仍应显示 AWS IP。测完恢复 Mac 代理。
+
+```text
+Lightsail 静态 IP：  你自己的 IPv4
+Mac 的检测结果：    与上面完全一致  ✓
+iPhone 检测结果：   与上面完全一致  ✓
+```
+
+如果页面显示旧结果，刷新页面，或新建无痕标签页再打开。
+
+### 6.2 确认 Claude 和其他网站各走各的
+
+| 验证什么 | 怎么看 |
+| --- | --- |
+| Claude 的出口 | 打开 [Claude 网络信息](https://claude.ai/cdn-cgi/trace)，若页面提供该信息，`ip=` 应等于 AWS 静态 IP |
+| 电脑命中规则 | Clash **连接** 页搜索 `claude.ai` 或 `api4.ipify.org`，看规则和链路是否经过 Claude 专用 AWS、中转节点 |
+| 手机命中规则 | Shadowrocket **数据 → 代理** 开启日志，重新访问，再查看相应请求的节点和规则 |
+| 普通网站 | 打开 GitHub、百度等，在客户端连接记录中确认仍按原规则使用普通节点或 DIRECT |
+| 目标服务能否实际使用 | 登录自己的 Claude 账号并发送一条消息；使用 API / Claude Code 时发起一次自己有权限的请求 |
+
+**不要只看“美国”二字，要核对具体 IP。** 订阅里的美国节点也是美国 IP，但不一定是自己的 AWS IP。其他 IP 检测域名没有加专用规则时，显示普通节点的 IP 是正常现象。
+
+AWS 提供的是数据中心 IP。出口正确只说明网络配置成功，不能保证目标服务的账号、地区、付费权限或风控一定通过。
+
+### 6.3 常见问题，从这一张表查
+
+| 现象 | 优先检查 |
+| --- | --- |
+| 手机 Safari 提示“无法建立安全连接” | AWS 节点的密码、**算法**是否为空；24443 是否开放；中转节点是否可用。不需要安装 HTTPS 解密证书 |
+| IP 检测显示订阅节点的 IP | 电脑是否是规则模式、手机是否是配置模式；七条规则是否启用且优先；手机的规则策略是否真的是 AWS-US-Compatible |
+| 电脑可以，手机不行 | 手机不会自动继承电脑规则；核对节点、中转关系、配置三部分 |
+| Claude 很慢，其他网页正常 | 在“🚀 AWS 中转”或手机“代理通过”换一条中转线路，再断开重连；先不用升级服务器套餐 |
+| Clash 节点旁显示 446、168 等数字 | 那是延迟，单位 ms，不是下载速度。普通测速网站未加专用规则时，测到的也不一定是 AWS 链路 |
+| 更新订阅后找不到中转节点 | 节点可能改名；重新复制完整名称到脚本，手机也重新选择“代理通过” |
+| 返回 401 / 403 | 记录响应正文；401 常见于认证缺失，403 可能是权限或策略限制，不能只凭状态码判定代理坏了 |
+| 浏览器可用，Claude Code 不行 | 终端可能未使用系统代理；按下面的可选设置测试 |
+
+**可选：让 Mac 终端里的 Claude Code 使用 Clash。** 先到 Clash 设置核对混合 / HTTP 端口；若是 `7897`，在启动 Claude Code 的同一个终端执行：
 
 ```bash
 export HTTP_PROXY=http://127.0.0.1:7897
 export HTTPS_PROXY=http://127.0.0.1:7897
-export http_proxy="$HTTP_PROXY"
-export https_proxy="$HTTPS_PROXY"
+export NO_PROXY=localhost,127.0.0.1
+curl --proxy http://127.0.0.1:7897 --max-time 20 https://api4.ipify.org
 ```
 
-然后从该窗口启动工具并发起一次实际请求；这些变量不会自动修改已经运行的 GUI 应用。大小写变量保持一致，是为了避免旧的小写代理值优先生效。若原有 `NO_PROXY` 或 `no_proxy` 包含 `*`、目标域名，会绕过代理，需要先检查并调整。Claude Code 官方支持 HTTP/HTTPS 代理，不支持 SOCKS 代理，因此这里使用 Clash 的 HTTP 混合端口。[Claude Code 网络配置说明](https://code.claude.com/docs/en/network-config)
+确认返回 AWS IP 后，再在该终端启动 `claude`。端口不是 7897 就替换数字。这些变量只作用于当前终端及其子进程；Claude Code 官方支持 HTTP / HTTPS 代理，不用 SOCKS 格式的 `ALL_PROXY`。[Claude Code 网络配置](https://code.claude.com/docs/en/network-config)
 
-Cursor 还可能经过自身的服务链路，要结合客户端日志中的请求地址、状态码和错误文字分析，不把所有拒绝都归结为本地 IP。
+Cursor 内调用模型还可能经过 Cursor 服务端，不能仅凭本地浏览器出口推断其模型请求的出口；需要结合具体错误排查。
 
-无需立即写入 `.zshrc`，先验证当前窗口的临时设置。撤销临时变量：
+### 6.4 用完以后，费用在哪里看
 
-```bash
-unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
-```
+服务器上的 sing-box 会开机自动启动。电脑日常运行 Clash Verge，手机运行 Shadowrocket；不需要常驻 SSH 隧道。代理订阅和 AWS 套餐是两笔独立费用，中转转发也会消耗订阅流量。
 
-如果某 API 返回 401，且内容是缺少 API key，说明服务器已响应认证要求，**不代表模型调用已成功**。如果返回明确的账号、地区或使用策略拒绝，应按平台说明处理；换 IP 不能保证解决。
+付费计划下，如果完全不用了，需要删除不再需要的实例及额外资源，并释放不再使用的静态 IP，再检查账单。**Stop / 停止实例仍计费；未绑定实例的静态 IPv4 也可能单独收费。** 删除前自行保存需要的配置。[AWS 计费与静态 IP 说明](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-frequently-asked-questions-faq-billing-and-account-management.html)
 
-## 9. 常见故障：从哪里查起
+最后核对：Mac 与 iPhone 的 `api4.ipify.org` 都显示自己的 AWS IP；Claude 请求命中专用规则；其他网站保持原分流。达到这三项，代理部分就搭好了。
 
-### 9.1 先按现象定位
-
-| 现象 | 优先检查 | 下一步 |
-| --- | --- | --- |
-| 浏览器 SSH 打不开 | 实例状态、TCP 22、账号激活 | 先恢复管理连接 |
-| `sing-box check` 报错 | JSON 逗号、引号、密钥长度 | 修正配置后再重启 |
-| 服务不是 active | 服务日志、配置文件权限 | 查看 `journalctl` 的具体错误 |
-| 客户端连接超时 | 公网 IP、云防火墙、UFW、当前网络到端口的连通性 | 比较 Wi-Fi／蜂窝，核对 TCP 24443 |
-| `message authentication failed` | 两端算法、密码是否一致 | 核对完整算法和密钥，尤其末尾 `=` |
-| `bad header` | 协议／插件不一致，或无效外部连接 | 先核对客户端，结合请求时间和来源判断 |
-| Safari 无法建立安全连接 | 节点参数、是否真正走代理、TLS／DNS | 先测其他 HTTPS 网站，再查对应服务日志 |
-| 手机失败但电脑正常 | 手机导入字段、网络差异、App 版本 | 手动重建节点并换网络复测 |
-| 出口仍是旧节点 | 策略组、规则命中、其他 VPN、旧连接 | 在连接页确认实际链路，断开重连 |
-| 浏览器可用、终端不可用 | 终端未使用系统代理 | 临时环境变量或 TUN |
-| 只有某个网站不可用 | 该域名的分流、网站状态、账号／服务限制 | 不先重装整个代理 |
-| 401 / 403 / UsagePolicy | 具体响应内容与账号权限 | 区分认证、服务政策与网络连接 |
-
-公网端口可能收到与自己无关的探测连接。日志里看到一次认证失败，不能直接断言来自自己的手机；需要对应重试时间、来源地址或可控的停止／启动测试。
-
-### 9.2 常用排查命令
-
-**在服务器终端执行：**
-
-```bash
-sudo systemctl status sing-box --no-pager
-sudo journalctl -u sing-box --since '10 minutes ago' --no-pager -n 50
-sudo ss -lntu 'sport = :24443'
-curl --max-time 20 https://api4.ipify.org
-```
-
-最后一条只检查服务器自身出站，不能代替手机测试。实时看日志可以用下方命令，结束时按 Control+C：
-
-```bash
-sudo journalctl -u sing-box -f
-```
-
-**在 Mac 终端执行：**先把命令里的 IP 替换成自己的。
-
-```bash
-nc -vz -G 5 YOUR_STATIC_IP 24443
-```
-
-它只测试 TCP 端口可达，不验证 Shadowsocks 密钥。如果 Mac 开着 TUN 或其他 VPN，此结果也不一定代表底层网络直连；判断直连时需核对 DIRECT 规则和当前接管状态。
-
-### 9.3 认证失败时按这张清单核对
-
-1. 服务器与客户端的端口都是 `24443`。
-2. 手机类型是 Shadowsocks，电脑类型是 `ss`。
-3. 算法完整一致，特别是 `2022-blake3-` 前缀。
-4. 密钥没有空格、换行，末尾 `=` 没被漏掉。
-5. 插件与混淆都是未启用。
-6. 修改手机节点后点了“保存”，并确实选中了这个节点。
-7. 若改过服务器配置，已经检查配置并重启服务。
-
-## 10. 日常使用、维护与停止计费
-
-### 10.1 平时哪些东西需要运行
-
-| 位置 | 正式使用时需要什么 | 不需要什么 |
-| --- | --- | --- |
-| AWS | 实例运行，sing-box 服务 active | 不用一直开浏览器 SSH 窗口 |
-| Mac | Clash Verge 运行，所需代理接管开启 | 不需要旧的 SSH 动态隧道常驻 |
-| iPhone | Shadowrocket 连接开启 | 不依赖 Mac 或电脑热点 |
-
-sing-box 的开机启动是“服务器重启后自动启动代理服务”。Clash Verge 的登录启动是“Mac 登录后自动打开客户端”。它们与之前的 SSH 自动重连任务是不同机制。
-
-如果以前专门创建了 SSH 自启动任务，应在新的 Shadowsocks 已完成出口验收后，只停用对应任务。不要停止系统中所有 SSH 进程；它们可能是其他工作连接。可选 SSH 测试方法见附录 A。
-
-### 10.2 看费用与停用资源
-
-Lightsail 基础实例按小时累计、按月度套餐上限计费；**停止实例仍会计费，删除实例才停止该实例继续产生费用**。静态 IPv4 绑定实例时不额外收取该静态地址费用，闲置未绑定超过规定时间会收费。快照等资源独立计费。[Lightsail 官方计费说明](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-frequently-asked-questions-faq-billing-and-account-management.html)
-
-1. 定期打开 **Billing and Cost Management → Bills / 账单**，查看 Lightsail 明细；同时查看 Credits／Free Tier 的余额与到期日。
-2. 若使用 Paid plan，可在 **Budgets / 预算** 建立月度成本邮件提醒，例如 10 美元。传统 AWS Budgets 的提醒不等于自动停机或硬性扣费上限。
-3. 免费计划到期或额度耗尽后，若未升级，可能失去资源访问；不要把它理解为会永远自动免费续期。是否已升级、是否收费，以账号当前计划为准。
-
-确定不再使用时：
-
-1. 私密保存仍需要的配置；需要保留数据时先完成备份。
-2. 在电脑和手机关闭该代理，恢复可用的直连或其他配置。
-3. Lightsail → Instances，找到正确实例，选择 **Delete / 删除** 并核对名称。删除会丢失该实例的数据。
-4. 到 Networking 检查不再使用的静态 IP，删除／释放它。释放后不能保证还能取回原地址。
-5. 检查是否还有快照、额外磁盘等资源，按需删除。
-6. 回到账单页复查；账单数据可能有延迟，删除前已产生的费用仍会保留。
-
-### 10.3 软件更新与密钥管理
-
-更新前在**服务器终端**备份配置，备份文件含密钥，不对外发送：
-
-```bash
-sudo cp -a /etc/sing-box/config.json "/root/sing-box-config-$(date +%Y%m%d-%H%M%S).json"
-sudo apt-get update
-sudo apt-get install --only-upgrade sing-box
-sudo sing-box check -c /etc/sing-box/config.json
-```
-
-检查成功后再执行：
-
-```bash
-sudo systemctl restart sing-box
-sudo systemctl is-active sing-box
-```
-
-更新后重新做电脑与手机出口测试。更换密钥时，在服务器生成新密钥、修改配置并校验重启，然后同步修改全部客户端；服务器修改后旧密钥立即无法继续使用。
-
-### 10.4 本次方案会安装或留下哪些东西
-
-| 位置 | 主要内容 |
-| --- | --- |
-| AWS 服务器 | sing-box 软件包、官方 APT 软件源、systemd 服务、`/etc/sing-box/config.json` |
-| Mac | Clash Verge 及其配置；如果采用附录 B，会保存一份 SSH 私钥；可能有本地节点链接／二维码 |
-| iPhone | Shadowrocket App、节点配置、iOS VPN 配置 |
-
-分享本指南时，不要附带自己的 SSH `.pem` 私钥、代理密钥、实际节点二维码或含密码的配置文件。
-
-## 附录 A：先用临时 SSH 隧道测试服务器（可选）
-
-适合在安装 sing-box 之前，先判断服务器能否作为出口。它依赖附录 B 的本地 SSH 私钥准备。已经完成 Shadowsocks 的读者无需再做。
-
-在 **Mac 终端窗口 A** 执行，替换自己的 IP：
-
-```bash
-ssh -i ~/.ssh/lightsail-us-west-2.pem \
-  -o IdentitiesOnly=yes \
-  -o ExitOnForwardFailure=yes \
-  -o ServerAliveInterval=30 \
-  -o ServerAliveCountMax=3 \
-  -N -D 127.0.0.1:18080 ubuntu@YOUR_STATIC_IP
-```
-
-首次连接的服务器身份核对方法见附录 B。连接成功后这个窗口通常没有新输出，也不会返回提示符，这是正常现象：SSH 正在前台维持隧道。
-
-再打开 **Mac 终端窗口 B**：
-
-```bash
-curl --noproxy '' --proxy socks5h://127.0.0.1:18080 \
-  --max-time 20 https://api4.ipify.org
-```
-
-应显示服务器静态 IP。结束测试，在窗口 A 按 **Control+C**，隧道就会停止。本附录不设置登录启动、不安装 autossh；重开电脑后不会自动恢复这个临时隧道。
-
-SSH 端口能用不能证明 Shadowsocks 的 `24443` 也能用；两者是不同的网络入口。若其他 VPN/TUN 正在接管 SSH，测试也不能单凭出口证明“直连 AWS”。
-
-## 附录 B：下载 SSH 密钥，在 Mac 终端管理服务器
-
-使用浏览器 SSH 完成主流程的读者可以暂时跳过。私钥是登录服务器的凭据，要像密码一样保存。
-
-1. 打开 Lightsail 的 **Account / 账户 → SSH keys / SSH 密钥**。
-2. 找到 **Oregon / us-west-2** 对应的默认密钥，点击下载。必须与创建实例时使用的密钥匹配。
-3. 确认下载文件名；常见名称为 `LightsailDefaultKey-us-west-2.pem`。
-4. 在 **Mac 终端**逐行执行。如果文件名不同，改第二条命令的源文件名。
-
-```bash
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-cp ~/Downloads/LightsailDefaultKey-us-west-2.pem ~/.ssh/lightsail-us-west-2.pem
-chmod 600 ~/.ssh/lightsail-us-west-2.pem
-chmod 600 ~/Downloads/LightsailDefaultKey-us-west-2.pem
-```
-
-执行前确认目标路径没有自己需要保留的其他密钥文件；不要覆盖同名旧密钥。
-
-5. 在 **浏览器 SSH 终端**执行下面命令，记录 ED25519 主机公钥指纹：
-
-```bash
-sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-```
-
-6. 在 **Mac 终端**连接：
-
-```bash
-ssh -i ~/.ssh/lightsail-us-west-2.pem \
-  -o IdentitiesOnly=yes \
-  -o HostKeyAlgorithms=ssh-ed25519 \
-  ubuntu@YOUR_STATIC_IP
-```
-
-首次提示是否信任主机时，核对与第 5 步的 SHA256 指纹一致，再输入 `yes`。出现 `ubuntu@…` 提示符后，输入 `whoami` 应返回 `ubuntu`。完成后输入 `exit` 返回 Mac。
-
-如果提示 `Permission denied (publickey)`，检查用户名是不是 `ubuntu`、密钥是否属于正确地区和实例。如果提示私钥权限过宽，重新执行 `chmod 600`。如果提示主机指纹变化，先查是否重建了实例或连错 IP，不直接绕过校验。
-
-## 最后的完成清单
-
-- 已确认 AWS 账号计划、余额和到期日。
-- 美国实例 Running，静态公网 IPv4 已绑定。
-- sing-box 配置检查成功、服务 active、开机启动 enabled。
-- TCP/UDP `24443` 已按需放行。
-- Mac 代理请求的出口等于静态 IP，HTTPS 正常。
-- iPhone 密码和算法非空，独立出口测试成功。
-- 实际目标应用完成了一次有权限的功能请求；若失败，已记录具体错误层次。
-- 没有把真实密钥、私钥、节点二维码随指南对外分享。
-
-相关主题入口：[梯子](梯子.md)。本文的图均为教学示意图，使用示例值，不是 AWS 或 Shadowrocket 当前界面的逐像素截图。
-
-## 常用链接：查看免费额度、剩余天数和流量
-
-以下控制台链接需要先登录自己的 AWS 账号。
+### 常用链接：免费额度、剩余天数和流量
 
 | 查看内容 | 链接与操作 |
 | --- | --- |
-| 免费额度、免费计划剩余天数 | [AWS Free Tier / 免费套餐](https://us-east-1.console.aws.amazon.com/costmanagement/home?region=us-east-1#/freetier)：展开“查看详细信息”，查看剩余服务抵扣金和剩余天数；具体展示以自己的账号计划为准。 |
-| 本月入站流量 | [personal-us-proxy 入站流量（Current month）](https://ap-northeast-1.console.aws.amazon.com/lightsail/webapp/us-west-2/instances/personal-us-proxy/metrics/NetworkIn?timeRange=MTD)：查看 Incoming network traffic，并将鼠标移到图中的数据点查看数值。 |
-| 本月出站流量 | [personal-us-proxy 出站流量（Current month）](https://ap-northeast-1.console.aws.amazon.com/lightsail/webapp/us-west-2/instances/personal-us-proxy/metrics/NetworkOut?timeRange=MTD)：查看 Outgoing network traffic，并将鼠标移到图中的数据点查看数值。 |
-| 流量额度如何计算、何时重置、超额如何收费 | [AWS 官方：Lightsail 数据传输额度常见问题](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-faq-data-transfer-allowance.html)。 |
+| 免费额度、剩余天数 | [AWS Free Tier / 免费套餐](https://us-east-1.console.aws.amazon.com/costmanagement/home?region=us-east-1#/freetier)，查看自己的抵扣余额和到期日 |
+| 本月费用 | [AWS 账单与成本控制台](https://us-east-1.console.aws.amazon.com/costmanagement/home#/home)，查看账单和实际收费 |
+| 本月入站流量 | [personal-us-proxy 入站流量](https://ap-northeast-1.console.aws.amazon.com/lightsail/webapp/us-west-2/instances/personal-us-proxy/metrics/NetworkIn?timeRange=MTD) |
+| 本月出站流量 | [personal-us-proxy 出站流量](https://ap-northeast-1.console.aws.amazon.com/lightsail/webapp/us-west-2/instances/personal-us-proxy/metrics/NetworkOut?timeRange=MTD) |
+| 流量额度与超额费用 | [Lightsail 数据传输额度说明](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-faq-data-transfer-allowance.html) |
 
-**其他读者如何使用：** 上面两个流量链接指向俄勒冈 `us-west-2` 的 `personal-us-proxy` 实例。如果你的实例名称或地区不同，请从 [Lightsail 控制台](https://lightsail.aws.amazon.com/)进入自己的实例，选择 **Metrics / 指标 → Incoming 或 Outgoing network traffic → Current month / 本月**。链接中的控制台入口域名不代表实例实际所在地区，以实例页面显示的地区为准。
+流量链接适用于 `us-west-2` 的 `personal-us-proxy`。如果名称或地区不同，从 [Lightsail 控制台](https://lightsail.aws.amazon.com/) 进入自己的实例 → **Metrics → Incoming / Outgoing network traffic → Current month**。
 
-**读数时注意：** 本月视图中的单个数据点可能是某一天的合计，不是整月累计，也不是“剩余流量”。入站和出站都计入套餐流量额度；代理转发会同时产生服务器入站和出站流量。估算本月剩余额度时，需要用套餐额度减去本月累计入站与出站用量，并留意监控数据延迟。流量额度按月重置，免费计划剩余天数与流量额度是两回事；实际费用以账单为准。
+本月图中的单个点不一定是整月累计；入站和出站都消耗套餐额度，代理转发会同时产生两种流量。额度按月重置，免费计划剩余天数是另一回事，实际费用以账单为准。
+
+相关主题：[梯子](梯子.md)。本文实截图片取自 2026-10-16 的界面；官方示例图已在对应位置标明来源与版本差异。公开分享前，不要把自己的密码、订阅链接、SSH 私钥或真实节点二维码填入本文。

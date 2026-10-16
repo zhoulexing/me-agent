@@ -2,7 +2,7 @@ import { createUserMessage, textOf } from '@agent-harness/llm/contract';
 import { runStep } from './run-step.js';
 import { executeToolCalls, skipToolCalls } from './execute-tools.js';
 
-export async function runTurn({ model, session, tools, userInput, maxSteps = 4, requireTool = false, signal, onEvent }) {
+export async function runTurn({ model, session, tools, userInput, maxSteps = 4, requireTool = false, signal, onEvent, requestApproval }) {
   if (!Number.isInteger(maxSteps) || maxSteps < 1) throw new Error('maxSteps 必须是正整数');
   signal?.throwIfAborted();
   const emit = async (type, data = {}) => {
@@ -12,6 +12,7 @@ export async function runTurn({ model, session, tools, userInput, maxSteps = 4, 
   };
   await session.append(createUserMessage(userInput));
   await emit('turn.started', { sessionId: session.id });
+  if (tools.permissions) await emit('permission.configured', tools.permissions);
 
   try {
     for (let step = 1; step <= maxSteps; step += 1) {
@@ -29,7 +30,7 @@ export async function runTurn({ model, session, tools, userInput, maxSteps = 4, 
         await skipToolCalls({ calls, session, emit, onEvent, step });
         throw new Error(`超过最大模型调用步数 ${maxSteps}`);
       }
-      await executeToolCalls({ calls, session, tools, signal, emit, onEvent, step });
+      await executeToolCalls({ calls, session, tools, signal, emit, onEvent, step, requestApproval });
       await emit('step.completed', { step });
     }
     throw new Error(`超过最大模型调用步数 ${maxSteps}`);

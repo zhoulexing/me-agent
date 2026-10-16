@@ -9,18 +9,20 @@ export async function skipToolCalls({ calls, session, emit, onEvent, step }) {
   }
 }
 
-export async function executeToolCalls({ calls, session, tools, signal, emit, onEvent, step }) {
+export async function executeToolCalls({ calls, session, tools, signal, emit, onEvent, step, requestApproval }) {
   for (const call of calls) {
     signal?.throwIfAborted();
-    // Durable call intent precedes any possible tool side effect.
-    await emit('tool.started', { step, callId: call.id, name: call.name, arguments: call.arguments });
     let result;
     let isError = false;
     try {
-      result = (await tools.execute(call, { signal })).result;
+      result = (await tools.execute(call, { signal, emit, requestApproval,
+        // Approval is not execution: only record started after the gate opens.
+        beforeExecute: prepared => emit('tool.started', { step, callId: prepared.id,
+          name: prepared.name, arguments: prepared.arguments }),
+      })).result;
     } catch (error) {
       if (signal?.aborted) throw error;
-      result = { error: error.message };
+      result = { error: error.message, code: error.code ?? 'TOOL_ERROR' };
       isError = true;
     }
     const recorded = await session.append(createToolResultMessage({ callId: call.id, name: call.name, result, isError }));
